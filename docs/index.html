@@ -86,6 +86,12 @@
     strong {
       color: #34495e;
     }
+    .debug {
+      background: #ffe6e6;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ff9999;
+    }
   </style>
 </head>
 <body>
@@ -93,8 +99,10 @@
   <p>Enter an ESR value (hex):</p>
   <input id="esrInput" type="text" value="0x78000045"/>
   <button onclick="decodeESR()">Decode</button>
+  <button onclick="testTable()">Test Table</button>
   <h2>Result:</h2>
   <div id="result">Loading...</div>
+  <div id="debug" class="debug" style="display: none;"></div>
 
   <script>
     // Load the script
@@ -111,6 +119,24 @@
       document.getElementById('result').textContent = 'Error: Failed to load decoder script';
     };
     document.head.appendChild(script);
+    
+    // Test function to verify table creation
+    function testTable() {
+      const debug = document.getElementById('debug');
+      debug.style.display = 'block';
+      debug.innerHTML = 'Testing table creation...<br>';
+      
+      if (typeof createComprehensiveBitFieldTable === 'function') {
+        debug.innerHTML += '✓ createComprehensiveBitFieldTable function found<br>';
+        const testTable = createComprehensiveBitFieldTable(0x78000045);
+        debug.innerHTML += '✓ Table created successfully<br>';
+        debug.innerHTML += 'Table length: ' + testTable.length + ' characters<br>';
+        debug.innerHTML += 'Contains table tag: ' + (testTable.includes('<table') ? 'Yes' : 'No') + '<br>';
+        debug.innerHTML += 'Contains 6 rows: ' + (testTable.split('<tr>').length - 1) + ' rows<br>';
+      } else {
+        debug.innerHTML += '✗ createComprehensiveBitFieldTable function NOT found<br>';
+      }
+    }
   </script>
 </body>
 </html>
