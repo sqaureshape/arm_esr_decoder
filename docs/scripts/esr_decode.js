@@ -124,6 +124,18 @@ function createProfessionalBitFieldTable(esr) {
   table += `<td colspan="26" class="field-desc">Instruction Specific Syndrome (bits 0-25)</td>`;
   table += `</tr>`;
   
+  // Row explaining what each bit means when set to 1
+  table += `<tr>`;
+  for (let i = 31; i >= 0; i--) {
+    const bit = (esr >> i) & 1;
+    if (bit === 1) {
+      table += `<td class="bit-meaning">${getBitMeaning(i)}</td>`;
+    } else {
+      table += `<td class="bit-meaning">-</td>`;
+    }
+  }
+  table += `</tr>`;
+  
   table += `</table>`;
   
   // Create detailed field explanation table
@@ -207,6 +219,45 @@ function createProfessionalBitFieldTable(esr) {
   table += `</table>`;
   
   return table;
+}
+
+// Function to get the meaning of each bit when set to 1
+function getBitMeaning(bitPosition) {
+  if (bitPosition >= 26) {
+    // EC bits (26-31)
+    return `EC bit ${bitPosition - 26}`;
+  } else {
+    // ISS bits (0-25)
+    switch(bitPosition) {
+      case 0: return 'FSC bit 0';
+      case 1: return 'FSC bit 1';
+      case 2: return 'FSC bit 2';
+      case 3: return 'FSC bit 3';
+      case 4: return 'FSC bit 4';
+      case 5: return 'FSC bit 5';
+      case 6: return 'Reserved';
+      case 7: return 'S1PTW';
+      case 8: return 'Access bit 0';
+      case 9: return 'Access bit 1';
+      case 10: return 'Reserved';
+      case 11: return 'Reserved';
+      case 12: return 'Reserved';
+      case 13: return 'Reserved';
+      case 14: return 'Reserved';
+      case 15: return 'Reserved';
+      case 16: return 'Realm bit 0';
+      case 17: return 'Realm bit 1';
+      case 18: return 'Realm bit 2';
+      case 19: return 'Realm bit 3';
+      case 20: return 'Realm bit 4';
+      case 21: return 'Realm bit 5';
+      case 22: return 'Realm bit 6';
+      case 23: return 'Realm bit 7';
+      case 24: return 'GPF';
+      case 25: return 'Reserved';
+      default: return 'Unknown';
+    }
+  }
 }
 
 // Helper function to get access type description
