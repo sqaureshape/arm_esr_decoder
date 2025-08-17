@@ -21,8 +21,8 @@ function decodeESR() {
     let output = `<h3>ESR: 0x${esr.toString(16).toUpperCase()}</h3>`;
     output += `<p><strong>Binary:</strong> ${esr.toString(2).padStart(32, '0')}</p>`;
     
-    // Create bit field table
-    output += createBitFieldTable(esr);
+    // Create professional bit field table
+    output += createProfessionalBitFieldTable(esr);
     
     // Field descriptions
     output += `<h4>Field Analysis:</h4>`;
@@ -91,8 +91,10 @@ function decodeESR() {
   }
 }
 
-function createBitFieldTable(esr) {
+function createProfessionalBitFieldTable(esr) {
   let table = `<h4>Bit Field Breakdown:</h4>`;
+  
+  // Create the main bit field table
   table += `<table class="bit-table">`;
   
   // Header row with bit positions
@@ -110,7 +112,7 @@ function createBitFieldTable(esr) {
   }
   table += `</tr>`;
   
-  // Row with field names
+  // Row with field names (spans multiple columns)
   table += `<tr>`;
   table += `<td colspan="6" class="field-name">EC</td>`;
   table += `<td colspan="26" class="field-name">ISS</td>`;
@@ -121,6 +123,86 @@ function createBitFieldTable(esr) {
   table += `<td colspan="6" class="field-desc">Exception Class (bits 26-31)</td>`;
   table += `<td colspan="26" class="field-desc">Instruction Specific Syndrome (bits 0-25)</td>`;
   table += `</tr>`;
+  
+  table += `</table>`;
+  
+  // Create detailed field explanation table
+  table += `<h4>Field Details:</h4>`;
+  table += `<table class="bit-table">`;
+  table += `<tr><th>Field</th><th>Bits</th><th>Value</th><th>Description</th></tr>`;
+  
+  // EC field
+  const ec = (esr >> 26) & 0x3F;
+  table += `<tr>`;
+  table += `<td class="field-name">EC</td>`;
+  table += `<td>26-31</td>`;
+  table += `<td>0x${ec.toString(16).toUpperCase()} (${ec})</td>`;
+  table += `<td>Exception Class - determines the type of exception</td>`;
+  table += `</tr>`;
+  
+  // ISS field
+  const iss = esr & 0x3FFFFFF;
+  table += `<tr>`;
+  table += `<td class="field-name">ISS</td>`;
+  table += `<td>0-25</td>`;
+  table += `<td>0x${iss.toString(16).toUpperCase()}</td>`;
+  table += `<td>Instruction Specific Syndrome - additional exception details</td>`;
+  table += `</tr>`;
+  
+  // Add specific ISS subfields based on EC
+  if (ec === 0x1E) {
+    // RME specific fields
+    const gpf = (iss >> 24) & 0x1;
+    const realm = (iss >> 16) & 0xFF;
+    const access = (iss >> 8) & 0x3;
+    
+    table += `<tr>`;
+    table += `<td class="field-name">GPF</td>`;
+    table += `<td>24</td>`;
+    table += `<td>${gpf}</td>`;
+    table += `<td>Granule Protection Fault flag</td>`;
+    table += `</tr>`;
+    
+    table += `<tr>`;
+    table += `<td class="field-name">Realm</td>`;
+    table += `<td>16-23</td>`;
+    table += `<td>${realm}</td>`;
+    table += `<td>Realm identifier</td>`;
+    table += `</tr>`;
+    
+    table += `<tr>`;
+    table += `<td class="field-name">Access</td>`;
+    table += `<td>8-9</td>`;
+    table += `<td>${access}</td>`;
+    table += `<td>Access type: ${getAccessType(iss)}</td>`;
+    table += `</tr>`;
+  } else if (ec === 0x20 || ec === 0x24 || ec === 0x25 || ec === 0x26) {
+    // Abort specific fields
+    const fsc = (iss >> 0) & 0x3F;
+    const ea = (iss >> 9) & 0x1;
+    const s1ptw = (iss >> 7) & 0x1;
+    
+    table += `<tr>`;
+    table += `<td class="field-name">FSC</td>`;
+    table += `<td>0-5</td>`;
+    table += `<td>0x${fsc.toString(16).toUpperCase()}</td>`;
+    table += `<td>Fault Status Code</td>`;
+    table += `</tr>`;
+    
+    table += `<tr>`;
+    table += `<td class="field-name">EA</td>`;
+    table += `<td>9</td>`;
+    table += `<td>${ea}</td>`;
+    table += `<td>External Abort</td>`;
+    table += `</tr>`;
+    
+    table += `<tr>`;
+    table += `<td class="field-name">S1PTW</td>`;
+    table += `<td>7</td>`;
+    table += `<td>${s1ptw}</td>`;
+    table += `<td>Stage 1 Page Table Walk</td>`;
+    table += `</tr>`;
+  }
   
   table += `</table>`;
   
