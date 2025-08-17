@@ -60,7 +60,7 @@ function createFieldBreakdownRows(esr) {
   let rows = '';
   const ec = (esr >> 26) & 0x3F;
   
-  // RES0 fields (reserved bits)
+  // RES0 fields (reserved bits) - exactly like reference
   rows += `<tr>`;
   rows += `<td colspan="6" class="field-name">RES0</td>`;
   rows += `<td colspan="1" class="field-name">RES0</td>`;
@@ -73,7 +73,7 @@ function createFieldBreakdownRows(esr) {
   rows += `<td colspan="25" class="field-value">RES0: 0x${(esr & 0x1FFFFFF).toString(16).toUpperCase()}</td>`;
   rows += `</tr>`;
   
-  // ISS2 field (bits 20-24)
+  // ISS2 field (bits 20-24) - exactly like reference
   rows += `<tr>`;
   rows += `<td colspan="12" class="field-name">ISS2</td>`;
   rows += `<td colspan="20" class="field-name">ISS2</td>`;
@@ -117,58 +117,92 @@ function createFieldBreakdownRows(esr) {
   rows += `<td colspan="32" class="field-value">ISS: 0x${iss.toString(16).toUpperCase()} 0b${iss.toString(2).padStart(25, '0')}<br><span class="field-desc">Instruction Specific Syndrome</span></td>`;
   rows += `</tr>`;
   
-  // Add specific field details based on EC type
+  // Add detailed ISS bit breakdown - exactly like reference
+  rows += addDetailedISSBreakdown(iss, ec);
+  
+  return rows;
+}
+
+function addDetailedISSBreakdown(iss, ec) {
+  let rows = '';
+  
   if (ec === 0x1E) {
-    rows += addRMEFields(iss);
+    // RME specific fields
+    rows += `<tr>`;
+    rows += `<td colspan="32" class="field-name">RME ISS Breakdown</td>`;
+    rows += `</tr>`;
+    
+    const gpf = (iss >> 24) & 0x1;
+    const realm = (iss >> 16) & 0xFF;
+    const access = (iss >> 8) & 0x3;
+    
+    rows += `<tr>`;
+    rows += `<td colspan="32" class="field-value">`;
+    rows += `GPF: ${gpf ? 'true' : 'false'} (Granule Protection Fault)<br>`;
+    rows += `Realm: 0x${realm.toString(16).toUpperCase()}<br>`;
+    rows += `Access: ${getAccessType(iss)}`;
+    rows += `</td>`;
+    rows += `</tr>`;
+    
   } else if (ec === 0x20 || ec === 0x24 || ec === 0x25 || ec === 0x26) {
-    rows += addAbortFields(iss);
+    // Abort specific fields - exactly like reference
+    rows += `<tr>`;
+    rows += `<td colspan="32" class="field-name">Abort ISS Breakdown</td>`;
+    rows += `</tr>`;
+    
+    const fsc = (iss >> 0) & 0x3F;
+    const ea = (iss >> 9) & 0x1;
+    const s1ptw = (iss >> 7) & 0x1;
+    const fnv = (iss >> 10) & 0x1;
+    
+    rows += `<tr>`;
+    rows += `<td colspan="32" class="field-value">`;
+    rows += `IFSC: 0x${fsc.toString(16).toUpperCase()} 0b${fsc.toString(2).padStart(6, '0')}<br>`;
+    rows += `<span class="field-desc">${getFSCDescription(fsc)}</span><br>`;
+    rows += `EA: ${ea ? 'true' : 'false'}<br>`;
+    rows += `S1PTW: ${s1ptw ? 'true' : 'false'}<br>`;
+    rows += `FnV: ${fnv ? 'true' : 'false'}`;
+    rows += `</td>`;
+    rows += `</tr>`;
+    
+  } else if (ec === 0x1F) {
+    // SVE, FP, or BTI abort
+    rows += `<tr>`;
+    rows += `<td colspan="32" class="field-name">SVE/FP/BTI ISS Breakdown</td>`;
+    rows += `</tr>`;
+    
+    const abortType = (iss >> 16) & 0xFF;
+    const syndrome = iss & 0xFFFF;
+    
+    rows += `<tr>`;
+    rows += `<td colspan="32" class="field-value">`;
+    rows += `Abort Type: 0x${abortType.toString(16).toUpperCase()} (${getAbortTypeDescription(abortType)})<br>`;
+    rows += `Syndrome: 0x${syndrome.toString(16).toUpperCase()}`;
+    rows += `</td>`;
+    rows += `</tr>`;
   }
   
   return rows;
 }
 
-function addRMEFields(iss) {
-  let rows = '';
-  const gpf = (iss >> 24) & 0x1;
-  const realm = (iss >> 16) & 0xFF;
-  
-  rows += `<tr>`;
-  rows += `<td colspan="32" class="field-name">RME Fields</td>`;
-  rows += `</tr>`;
-  
-  rows += `<tr>`;
-  rows += `<td colspan="32" class="field-value">`;
-  rows += `GPF: ${gpf ? 'true' : 'false'} (Granule Protection Fault)<br>`;
-  rows += `Realm: 0x${realm.toString(16).toUpperCase()}<br>`;
-  rows += `Access: ${getAccessType(iss)}`;
-  rows += `</td>`;
-  rows += `</tr>`;
-  
-  return rows;
+function getAbortTypeDescription(type) {
+  switch(type) {
+    case 0: return 'SVE';
+    case 1: return 'FP';
+    case 2: return 'BTI';
+    default: return 'Unknown';
+  }
 }
 
-function addAbortFields(iss) {
-  let rows = '';
-  const fsc = (iss >> 0) & 0x3F;
-  const ea = (iss >> 9) & 0x1;
-  const s1ptw = (iss >> 7) & 0x1;
-  const fnv = (iss >> 10) & 0x1;
-  
-  rows += `<tr>`;
-  rows += `<td colspan="32" class="field-name">Abort Fields</td>`;
-  rows += `</tr>`;
-  
-  rows += `<tr>`;
-  rows += `<td colspan="32" class="field-value">`;
-  rows += `FSC: 0x${fsc.toString(16).toUpperCase()} 0b${fsc.toString(2).padStart(6, '0')}<br>`;
-  rows += `<span class="field-desc">${getFSCDescription(fsc)}</span><br>`;
-  rows += `EA: ${ea ? 'true' : 'false'} (External Abort)<br>`;
-  rows += `S1PTW: ${s1ptw ? 'true' : 'false'} (Stage 1 Page Table Walk)<br>`;
-  rows += `FnV: ${fnv ? 'true' : 'false'} (FAR is valid)`;
-  rows += `</td>`;
-  rows += `</tr>`;
-  
-  return rows;
+// Helper function to get access type description
+function getAccessType(iss) {
+  const access = (iss >> 8) & 0x3;
+  switch(access) {
+    case 0: return 'Read';
+    case 1: return 'Write';
+    case 2: return 'Execute';
+    default: return 'Unknown';
+  }
 }
 
 function getECDescription(ec) {
@@ -229,17 +263,6 @@ function getFSCDescription(fsc) {
     case 0x3E: return 'Implementation defined';
     case 0x3F: return 'Implementation defined';
     default: return 'Unknown Fault Status Code';
-  }
-}
-
-// Helper function to get access type description
-function getAccessType(iss) {
-  const access = (iss >> 8) & 0x3;
-  switch(access) {
-    case 0: return 'Read';
-    case 1: return 'Write';
-    case 2: return 'Execute';
-    default: return 'Unknown';
   }
 }
 
