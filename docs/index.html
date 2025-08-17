@@ -14,8 +14,30 @@
   <input id="esrInput" type="text" value="0x78000045"/>
   <button onclick="decodeESR()">Decode</button>
   <h2>Result:</h2>
-  <pre id="result"></pre>
+  <pre id="result">Loading...</pre>
 
-  <script src="scripts/esr_decode.js"></script>
+  <script>
+    // Debug logging
+    console.log('HTML loaded, about to load script...');
+    
+    // Load the script
+    const script = document.createElement('script');
+    script.src = 'scripts/esr_decode.js';
+    script.onload = function() {
+      console.log('Script loaded successfully');
+      if (typeof decodeESR === 'function') {
+        console.log('decodeESR function found');
+        decodeESR();
+      } else {
+        console.error('decodeESR function not found');
+        document.getElementById('result').textContent = 'Error: decodeESR function not loaded';
+      }
+    };
+    script.onerror = function() {
+      console.error('Failed to load script');
+      document.getElementById('result').textContent = 'Error: Failed to load decoder script';
+    };
+    document.head.appendChild(script);
+  </script>
 </body>
 </html>
