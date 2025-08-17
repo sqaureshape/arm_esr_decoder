@@ -21,63 +21,8 @@ function decodeESR() {
     let output = `<h3>ESR: 0x${esr.toString(16).toUpperCase()}</h3>`;
     output += `<p><strong>Binary:</strong> ${esr.toString(2).padStart(32, '0')}</p>`;
     
-    // Create single comprehensive bit field table
-    output += createComprehensiveBitFieldTable(esr);
-    
-    // Exception Class Analysis
-    output += `<h4>Exception Class Analysis:</h4>`;
-    if (ec === 0x1E) {
-      output += `<p><strong>Type:</strong> Granule Protection Check (RME)</p>`;
-      output += `<p><strong>Description:</strong> Realm Management Extension protection violation</p>`;
-      output += `<h5>ISS Details:</h5>`;
-      output += `<ul>`;
-      output += `<li><strong>GPF (Granule Protection Fault):</strong> ${(iss >> 24) & 0x1 ? 'Yes' : 'No'}</li>`;
-      output += `<li><strong>Realm:</strong> ${(iss >> 16) & 0xFF}</li>`;
-      output += `<li><strong>Access Type:</strong> ${getAccessType(iss)}</li>`;
-      output += `</ul>`;
-    } else if (ec === 0x1F) {
-      output += `<p><strong>Type:</strong> SVE, FP, or BTI abort</p>`;
-      output += `<h5>ISS Details:</h5>`;
-      output += `<ul>`;
-      output += `<li><strong>Abort Type:</strong> ${getAbortType(iss)}</li>`;
-      output += `<li><strong>Syndrome:</strong> 0x${(iss & 0xFFFF).toString(16).toUpperCase()}</li>`;
-      output += `</ul>`;
-    } else if (ec === 0x20) {
-      output += `<p><strong>Type:</strong> Instruction Abort from a lower Exception Level</p>`;
-      output += `<h5>ISS Details:</h5>`;
-      output += `<ul>`;
-      output += `<li><strong>FSC (Fault Status Code):</strong> 0x${(iss >> 0) & 0x3F}</li>`;
-      output += `<li><strong>EA (External Abort):</strong> ${(iss >> 9) & 0x1 ? 'Yes' : 'No'}</li>`;
-      output += `<li><strong>S1PTW:</strong> ${(iss >> 7) & 0x1 ? 'Yes' : 'No'}</li>`;
-      output += `</ul>`;
-    } else if (ec === 0x24) {
-      output += `<p><strong>Type:</strong> Data Abort from a lower Exception Level</p>`;
-      output += `<h5>ISS Details:</h5>`;
-      output += `<ul>`;
-      output += `<li><strong>FSC (Fault Status Code):</strong> 0x${(iss >> 0) & 0x3F}</li>`;
-      output += `<li><strong>EA (External Abort):</strong> ${(iss >> 9) & 0x1 ? 'Yes' : 'No'}</li>`;
-      output += `<li><strong>S1PTW:</strong> ${(iss >> 7) & 0x1 ? 'Yes' : 'No'}</li>`;
-      output += `</ul>`;
-    } else if (ec === 0x25) {
-      output += `<p><strong>Type:</strong> Data Abort from the current Exception Level</p>`;
-      output += `<h5>ISS Details:</h5>`;
-      output += `<ul>`;
-      output += `<li><strong>FSC (Fault Status Code):</strong> 0x${(iss >> 0) & 0x3F}</li>`;
-      output += `<li><strong>EA (External Abort):</strong> ${(iss >> 9) & 0x1 ? 'Yes' : 'No'}</li>`;
-      output += `<li><strong>S1PTW:</strong> ${(iss >> 7) & 0x1 ? 'Yes' : 'No'}</li>`;
-      output += `</ul>`;
-    } else if (ec === 0x26) {
-      output += `<p><strong>Type:</strong> Data Abort from a lower Exception Level (same EL)</p>`;
-      output += `<h5>ISS Details:</h5>`;
-      output += `<ul>`;
-      output += `<li><strong>FSC (Fault Status Code):</strong> 0x${(iss >> 0) & 0x3F}</li>`;
-      output += `<li><strong>EA (External Abort):</strong> ${(iss >> 9) & 0x1 ? 'Yes' : 'No'}</li>`;
-      output += `<li><strong>S1PTW:</strong> ${(iss >> 7) & 0x1 ? 'Yes' : 'No'}</li>`;
-      output += `</ul>`;
-    } else {
-      output += `<p><strong>Type:</strong> Unknown/Uncategorized</p>`;
-      output += `<p><strong>ISS:</strong> 0x${iss.toString(16).toUpperCase()}</p>`;
-    }
+    // Create the exact table format from the reference
+    output += createReferenceStyleTable(esr);
     
     resultEl.innerHTML = output;
     
@@ -86,11 +31,11 @@ function decodeESR() {
   }
 }
 
-function createComprehensiveBitFieldTable(esr) {
+function createReferenceStyleTable(esr) {
   let table = `<h4>Bit Field Breakdown:</h4>`;
   table += `<table class="bit-table">`;
   
-  // Header row with bit positions
+  // Header row with bit positions (31 down to 0)
   table += `<tr>`;
   for (let i = 31; i >= 0; i--) {
     table += `<th>${i}</th>`;
@@ -105,77 +50,142 @@ function createComprehensiveBitFieldTable(esr) {
   }
   table += `</tr>`;
   
-  // Row with field names (spans multiple columns)
+  // Field names row - spans multiple columns like the reference
   table += `<tr>`;
   table += `<td colspan="6" class="field-name">EC</td>`;
-  table += `<td colspan="26" class="field-name">ISS</td>`;
+  table += `<td colspan="1" class="field-name">IL</td>`;
+  table += `<td colspan="25" class="field-name">ISS</td>`;
   table += `</tr>`;
   
-  // Row with field descriptions
+  // Field values and descriptions row
   table += `<tr>`;
-  table += `<td colspan="6" class="field-desc">Exception Class (bits 26-31)</td>`;
-  table += `<td colspan="26" class="field-desc">Instruction Specific Syndrome (bits 0-25)</td>`;
+  
+  // EC field (bits 26-31)
+  const ec = (esr >> 26) & 0x3F;
+  table += `<td colspan="6" class="field-value">`;
+  table += `EC: 0x${ec.toString(16).toUpperCase()} 0b${ec.toString(2).padStart(6, '0')}<br>`;
+  table += `<span class="field-desc">${getECDescription(ec)}</span>`;
+  table += `</td>`;
+  
+  // IL field (bit 25)
+  const il = (esr >> 25) & 0x1;
+  table += `<td colspan="1" class="field-value">`;
+  table += `IL: ${il ? 'true' : 'false'}<br>`;
+  table += `<span class="field-desc">${il ? '32-bit instruction trapped' : '16-bit instruction trapped'}</span>`;
+  table += `</td>`;
+  
+  // ISS field (bits 0-24)
+  const iss = esr & 0x1FFFFFF;
+  table += `<td colspan="25" class="field-value">`;
+  table += `ISS: 0x${iss.toString(16).toUpperCase()} 0b${iss.toString(2).padStart(25, '0')}<br>`;
+  table += `<span class="field-desc">Instruction Specific Syndrome</span>`;
+  table += `</td>`;
+  
   table += `</tr>`;
   
-  // Row with bit meanings (what each set bit represents)
-  table += `<tr>`;
-  for (let i = 31; i >= 0; i--) {
-    const bit = (esr >> i) & 1;
-    if (bit === 1) {
-      table += `<td class="bit-meaning">${getBitMeaning(i)}</td>`;
-    } else {
-      table += `<td class="bit-meaning">-</td>`;
-    }
+  // Additional field details row for specific EC types
+  if (ec === 0x1E) {
+    // RME specific fields
+    table += `<tr>`;
+    table += `<td colspan="6" class="field-name">RME Fields</td>`;
+    table += `<td colspan="1" class="field-name">-</td>`;
+    table += `<td colspan="25" class="field-value">`;
+    
+    const gpf = (iss >> 24) & 0x1;
+    const realm = (iss >> 16) & 0xFF;
+    const access = (iss >> 8) & 0x3;
+    
+    table += `GPF: ${gpf ? 'true' : 'false'} (Granule Protection Fault)<br>`;
+    table += `Realm: 0x${realm.toString(16).toUpperCase()}<br>`;
+    table += `Access: ${getAccessType(iss)}`;
+    
+    table += `</td>`;
+    table += `</tr>`;
+  } else if (ec === 0x20 || ec === 0x24 || ec === 0x25 || ec === 0x26) {
+    // Abort specific fields
+    table += `<tr>`;
+    table += `<td colspan="6" class="field-name">Abort Fields</td>`;
+    table += `<td colspan="1" class="field-name">-</td>`;
+    table += `<td colspan="25" class="field-value">`;
+    
+    const fsc = (iss >> 0) & 0x3F;
+    const ea = (iss >> 9) & 0x1;
+    const s1ptw = (iss >> 7) & 0x1;
+    const fnv = (iss >> 10) & 0x1;
+    
+    table += `FSC: 0x${fsc.toString(16).toUpperCase()} 0b${fsc.toString(2).padStart(6, '0')}<br>`;
+    table += `<span class="field-desc">${getFSCDescription(fsc)}</span><br>`;
+    table += `EA: ${ea ? 'true' : 'false'} (External Abort)<br>`;
+    table += `S1PTW: ${s1ptw ? 'true' : 'false'} (Stage 1 Page Table Walk)<br>`;
+    table += `FnV: ${fnv ? 'true' : 'false'} (FAR is valid)`;
+    
+    table += `</td>`;
+    table += `</tr>`;
   }
-  table += `</tr>`;
-  
-  // Row with detailed field information
-  table += `<tr>`;
-  table += `<td colspan="6" class="field-info">EC=${(esr >> 26) & 0x3F} (0x${((esr >> 26) & 0x3F).toString(16).toUpperCase()})</td>`;
-  table += `<td colspan="26" class="field-info">ISS=${esr & 0x3FFFFFF} (0x${(esr & 0x3FFFFFF).toString(16).toUpperCase()})</td>`;
-  table += `</tr>`;
   
   table += `</table>`;
   
   return table;
 }
 
-// Function to get the meaning of each bit when set to 1
-function getBitMeaning(bitPosition) {
-  if (bitPosition >= 26) {
-    // EC bits (26-31)
-    return `EC bit ${bitPosition - 26}`;
-  } else {
-    // ISS bits (0-25)
-    switch(bitPosition) {
-      case 0: return 'FSC bit 0';
-      case 1: return 'FSC bit 1';
-      case 2: return 'FSC bit 2';
-      case 3: return 'FSC bit 3';
-      case 4: return 'FSC bit 4';
-      case 5: return 'FSC bit 5';
-      case 6: return 'Reserved';
-      case 7: return 'S1PTW';
-      case 8: return 'Access bit 0';
-      case 9: return 'Access bit 1';
-      case 10: return 'Reserved';
-      case 11: return 'Reserved';
-      case 12: return 'Reserved';
-      case 13: return 'Reserved';
-      case 14: return 'Reserved';
-      case 15: return 'Reserved';
-      case 16: return 'Realm bit 0';
-      case 17: return 'Realm bit 1';
-      case 18: return 'Realm bit 2';
-      case 19: return 'Realm bit 3';
-      case 20: return 'Realm bit 4';
-      case 21: return 'Realm bit 5';
-      case 22: return 'Realm bit 6';
-      case 23: return 'Realm bit 7';
-      case 24: return 'GPF';
-      case 25: return 'Reserved';
-      default: return 'Unknown';
-    }
+function getECDescription(ec) {
+  switch(ec) {
+    case 0x1E: return 'Granule Protection Check (RME)';
+    case 0x1F: return 'SVE, FP, or BTI abort';
+    case 0x20: return 'Instruction Abort from a lower Exception level';
+    case 0x24: return 'Data Abort from a lower Exception level';
+    case 0x25: return 'Data Abort from the current Exception level';
+    case 0x26: return 'Data Abort from a lower Exception level (same EL)';
+    default: return 'Unknown Exception Class';
+  }
+}
+
+function getFSCDescription(fsc) {
+  switch(fsc) {
+    case 0x00: return 'Address size fault, level 0';
+    case 0x01: return 'Address size fault, level 1';
+    case 0x02: return 'Address size fault, level 2';
+    case 0x03: return 'Address size fault, level 3';
+    case 0x04: return 'Translation fault, level 0';
+    case 0x05: return 'Translation fault, level 1';
+    case 0x06: return 'Translation fault, level 2';
+    case 0x07: return 'Translation fault, level 3';
+    case 0x08: return 'Access flag fault, level 0';
+    case 0x09: return 'Access flag fault, level 1';
+    case 0x0A: return 'Access flag fault, level 2';
+    case 0x0B: return 'Access flag fault, level 3';
+    case 0x0C: return 'Permission fault, level 0';
+    case 0x0D: return 'Permission fault, level 1';
+    case 0x0E: return 'Permission fault, level 2';
+    case 0x0F: return 'Permission fault, level 3';
+    case 0x10: return 'Debug event, level 0';
+    case 0x11: return 'Debug event, level 1';
+    case 0x12: return 'Debug event, level 2';
+    case 0x13: return 'Debug event, level 3';
+    case 0x20: return 'Synchronous External abort';
+    case 0x21: return 'Alignment fault';
+    case 0x22: return 'SError interrupt';
+    case 0x23: return 'Synchronous External abort on translation table walk, level 0';
+    case 0x24: return 'Synchronous External abort on translation table walk, level 1';
+    case 0x25: return 'Synchronous External abort on translation table walk, level 2';
+    case 0x26: return 'Synchronous External abort on translation table walk, level 3';
+    case 0x30: return 'TLB conflict abort';
+    case 0x31: return 'Unsupported exclusive or atomic access';
+    case 0x32: return 'Implementation defined';
+    case 0x33: return 'Implementation defined';
+    case 0x34: return 'Implementation defined';
+    case 0x35: return 'Implementation defined';
+    case 0x36: return 'Implementation defined';
+    case 0x37: return 'Implementation defined';
+    case 0x38: return 'Implementation defined';
+    case 0x39: return 'Implementation defined';
+    case 0x3A: return 'Implementation defined';
+    case 0x3B: return 'Implementation defined';
+    case 0x3C: return 'Implementation defined';
+    case 0x3D: return 'Implementation defined';
+    case 0x3E: return 'Implementation defined';
+    case 0x3F: return 'Implementation defined';
+    default: return 'Unknown Fault Status Code';
   }
 }
 
@@ -188,15 +198,6 @@ function getAccessType(iss) {
     case 2: return 'Execute';
     default: return 'Unknown';
   }
-}
-
-// Helper function to get abort type description
-function getAbortType(iss) {
-  const type = (iss >> 16) & 0xFF;
-  if (type === 0) return 'SVE';
-  if (type === 1) return 'FP';
-  if (type === 2) return 'BTI';
-  return `Unknown (0x${type.toString(16).toUpperCase()})`;
 }
 
 // Auto-decode on page load to show the default value
