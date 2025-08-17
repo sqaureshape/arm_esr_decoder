@@ -1,0 +1,5 @@
+[
+  {"esr": "0x78000045", "desc": "Data Abort, EL1"},
+  {"esr": "0x96000045", "desc": "Instruction Abort, EL2"},
+  {"esr": "0x7a000000", "desc": "Granule Protection Check (RME)"}
+]

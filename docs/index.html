@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ESR-RME Decoder</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    pre { background: #f4f4f4; padding: 10px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>ESR-RME Decoder</h1>
+  <p>Enter an ESR value (hex):</p>
+  <input id="esrInput" type="text" value="0x78000045"/>
+  <button onclick="decodeESR()">Decode</button>
+  <h2>Result:</h2>
+  <pre id="result"></pre>
+
+  <script src="../scripts/esr_decode.js"></script>
+</body>
+</html>
