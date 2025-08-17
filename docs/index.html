@@ -15,7 +15,6 @@
       white-space: pre;
       overflow-x: auto;
     }
-    .debug { background: #ffe6e6; padding: 5px; margin: 10px 0; font-size: 12px; }
   </style>
 </head>
 <body>
@@ -23,50 +22,24 @@
   <p>Enter an ESR value (hex):</p>
   <input id="esrInput" type="text" value="0x78000045"/>
   <button onclick="decodeESR()">Decode</button>
-  <button onclick="testEnhanced()">Test Enhanced</button>
   <h2>Result:</h2>
   <pre id="result">Loading...</pre>
-  <div id="debug" class="debug"></div>
 
   <script>
-    // Debug logging
-    console.log('HTML loaded, about to load script...');
-    document.getElementById('debug').textContent = 'Loading script...';
-    
     // Load the script
     const script = document.createElement('script');
     script.src = 'scripts/esr_decode.js';
     script.onload = function() {
-      console.log('Script loaded successfully');
-      document.getElementById('debug').textContent = 'Script loaded successfully';
       if (typeof decodeESR === 'function') {
-        console.log('decodeESR function found');
-        document.getElementById('debug').textContent = 'decodeESR function found - calling it now';
         decodeESR();
       } else {
-        console.error('decodeESR function not found');
-        document.getElementById('debug').textContent = 'Error: decodeESR function not loaded';
         document.getElementById('result').textContent = 'Error: decodeESR function not loaded';
       }
     };
     script.onerror = function() {
-      console.error('Failed to load script');
-      document.getElementById('debug').textContent = 'Error: Failed to load decoder script';
       document.getElementById('result').textContent = 'Error: Failed to load decoder script';
     };
     document.head.appendChild(script);
-    
-    // Test function to verify enhanced features
-    function testEnhanced() {
-      const debug = document.getElementById('debug');
-      debug.textContent = 'Testing enhanced features...';
-      
-      if (typeof getBitRange === 'function') {
-        debug.textContent = 'getBitRange function found - enhanced features are loaded!';
-      } else {
-        debug.textContent = 'getBitRange function NOT found - enhanced features missing!';
-      }
-    }
   </script>
 </body>
 </html>
