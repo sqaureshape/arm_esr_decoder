@@ -117,19 +117,22 @@ function createFieldBreakdownRows(esr) {
   rows += `<td colspan="32" class="field-value">ISS: 0x${iss.toString(16).toUpperCase()} 0b${iss.toString(2).padStart(25, '0')}<br><span class="field-desc">Instruction Specific Syndrome</span></td>`;
   rows += `</tr>`;
   
-  // Add detailed ISS bit breakdown - exactly like reference
-  rows += addDetailedISSBreakdown(iss, ec);
+  // Add bit-aligned field breakdowns - exactly like reference
+  rows += addBitAlignedISSBreakdown(iss, ec);
   
   return rows;
 }
 
-function addDetailedISSBreakdown(iss, ec) {
+function addBitAlignedISSBreakdown(iss, ec) {
   let rows = '';
   
   if (ec === 0x1E) {
-    // RME specific fields
+    // RME specific fields with bit alignment
     rows += `<tr>`;
-    rows += `<td colspan="32" class="field-name">RME ISS Breakdown</td>`;
+    rows += `<td colspan="8" class="field-name">GPF</td>`;
+    rows += `<td colspan="8" class="field-name">Realm</td>`;
+    rows += `<td colspan="8" class="field-name">Access</td>`;
+    rows += `<td colspan="8" class="field-name">Reserved</td>`;
     rows += `</tr>`;
     
     const gpf = (iss >> 24) & 0x1;
@@ -137,48 +140,55 @@ function addDetailedISSBreakdown(iss, ec) {
     const access = (iss >> 8) & 0x3;
     
     rows += `<tr>`;
-    rows += `<td colspan="32" class="field-value">`;
-    rows += `GPF: ${gpf ? 'true' : 'false'} (Granule Protection Fault)<br>`;
-    rows += `Realm: 0x${realm.toString(16).toUpperCase()}<br>`;
-    rows += `Access: ${getAccessType(iss)}`;
-    rows += `</td>`;
+    rows += `<td colspan="8" class="field-value">GPF: ${gpf ? 'true' : 'false'}<br><span class="field-desc">Granule Protection Fault</span></td>`;
+    rows += `<td colspan="8" class="field-value">Realm: 0x${realm.toString(16).toUpperCase()}</td>`;
+    rows += `<td colspan="8" class="field-value">Access: ${getAccessType(iss)}</td>`;
+    rows += `<td colspan="8" class="field-value">Reserved: 0x${(iss & 0xFF).toString(16).toUpperCase()}</td>`;
     rows += `</tr>`;
     
   } else if (ec === 0x20 || ec === 0x24 || ec === 0x25 || ec === 0x26) {
-    // Abort specific fields - exactly like reference
+    // Abort specific fields with bit alignment - exactly like reference
     rows += `<tr>`;
-    rows += `<td colspan="32" class="field-name">Abort ISS Breakdown</td>`;
+    rows += `<td colspan="6" class="field-name">IFSC</td>`;
+    rows += `<td colspan="1" class="field-name">-</td>`;
+    rows += `<td colspan="1" class="field-name">S1PTW</td>`;
+    rows += `<td colspan="2" class="field-name">Access</td>`;
+    rows += `<td colspan="1" class="field-name">EA</td>`;
+    rows += `<td colspan="1" class="field-name">FnV</td>`;
+    rows += `<td colspan="15" class="field-name">Reserved</td>`;
     rows += `</tr>`;
     
     const fsc = (iss >> 0) & 0x3F;
-    const ea = (iss >> 9) & 0x1;
     const s1ptw = (iss >> 7) & 0x1;
+    const access = (iss >> 8) & 0x3;
+    const ea = (iss >> 9) & 0x1;
     const fnv = (iss >> 10) & 0x1;
     
     rows += `<tr>`;
-    rows += `<td colspan="32" class="field-value">`;
-    rows += `IFSC: 0x${fsc.toString(16).toUpperCase()} 0b${fsc.toString(2).padStart(6, '0')}<br>`;
-    rows += `<span class="field-desc">${getFSCDescription(fsc)}</span><br>`;
-    rows += `EA: ${ea ? 'true' : 'false'}<br>`;
-    rows += `S1PTW: ${s1ptw ? 'true' : 'false'}<br>`;
-    rows += `FnV: ${fnv ? 'true' : 'false'}`;
-    rows += `</td>`;
+    rows += `<td colspan="6" class="field-value">IFSC: 0x${fsc.toString(16).toUpperCase()} 0b${fsc.toString(2).padStart(6, '0')}<br><span class="field-desc">${getFSCDescription(fsc)}</span></td>`;
+    rows += `<td colspan="1" class="field-value">-</td>`;
+    rows += `<td colspan="1" class="field-value">S1PTW: ${s1ptw ? 'true' : 'false'}</td>`;
+    rows += `<td colspan="2" class="field-value">Access: ${getAccessType(iss)}</td>`;
+    rows += `<td colspan="1" class="field-value">EA: ${ea ? 'true' : 'false'}</td>`;
+    rows += `<td colspan="1" class="field-value">FnV: ${fnv ? 'true' : 'false'}</td>`;
+    rows += `<td colspan="15" class="field-value">Reserved: 0x${((iss >> 11) & 0x3FFF).toString(16).toUpperCase()}</td>`;
     rows += `</tr>`;
     
   } else if (ec === 0x1F) {
-    // SVE, FP, or BTI abort
+    // SVE, FP, or BTI abort with bit alignment
     rows += `<tr>`;
-    rows += `<td colspan="32" class="field-name">SVE/FP/BTI ISS Breakdown</td>`;
+    rows += `<td colspan="8" class="field-name">Abort Type</td>`;
+    rows += `<td colspan="16" class="field-name">Syndrome</td>`;
+    rows += `<td colspan="8" class="field-name">Reserved</td>`;
     rows += `</tr>`;
     
     const abortType = (iss >> 16) & 0xFF;
     const syndrome = iss & 0xFFFF;
     
     rows += `<tr>`;
-    rows += `<td colspan="32" class="field-value">`;
-    rows += `Abort Type: 0x${abortType.toString(16).toUpperCase()} (${getAbortTypeDescription(abortType)})<br>`;
-    rows += `Syndrome: 0x${syndrome.toString(16).toUpperCase()}`;
-    rows += `</td>`;
+    rows += `<td colspan="8" class="field-value">Abort Type: 0x${abortType.toString(16).toUpperCase()}<br><span class="field-desc">${getAbortTypeDescription(abortType)}</span></td>`;
+    rows += `<td colspan="16" class="field-value">Syndrome: 0x${syndrome.toString(16).toUpperCase()}</td>`;
+    rows += `<td colspan="8" class="field-value">Reserved: 0x00</td>`;
     rows += `</tr>`;
   }
   
