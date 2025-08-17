@@ -8,7 +8,7 @@ function decodeESR() {
     const esr = parseInt(cleanInput, 16);
     
     if (isNaN(esr)) {
-      resultEl.textContent = "Error: Invalid hexadecimal input. Please enter a valid hex value (e.g., 78000045 or 0x78000045)";
+      resultEl.innerHTML = "Error: Invalid hexadecimal input. Please enter a valid hex value (e.g., 78000045 or 0x78000045)";
       return;
     }
     
@@ -18,71 +18,113 @@ function decodeESR() {
     // Extract Instruction Specific Syndrome (ISS) - bits 0-25
     const iss = esr & 0x3FFFFFF;
     
-    let output = `ESR: 0x${esr.toString(16).toUpperCase()}\n`;
-    output += `Binary: ${esr.toString(2).padStart(32, '0')}\n\n`;
+    let output = `<h3>ESR: 0x${esr.toString(16).toUpperCase()}</h3>`;
+    output += `<p><strong>Binary:</strong> ${esr.toString(2).padStart(32, '0')}</p>`;
     
-    // Clean bit field breakdown in the style of esr.arm64.dev
-    output += `Bit fields:\n`;
-    output += `31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0\n`;
-    output += `${getBit(esr, 31)} ${getBit(esr, 30)} ${getBit(esr, 29)} ${getBit(esr, 28)} ${getBit(esr, 27)} ${getBit(esr, 26)} ${getBit(esr, 25)} ${getBit(esr, 24)} ${getBit(esr, 23)} ${getBit(esr, 22)} ${getBit(esr, 21)} ${getBit(esr, 20)} ${getBit(esr, 19)} ${getBit(esr, 18)} ${getBit(esr, 17)} ${getBit(esr, 16)} ${getBit(esr, 15)} ${getBit(esr, 14)} ${getBit(esr, 13)} ${getBit(esr, 12)} ${getBit(esr, 11)} ${getBit(esr, 10)} ${getBit(esr, 9)} ${getBit(esr, 8)} ${getBit(esr, 7)} ${getBit(esr, 6)} ${getBit(esr, 5)} ${getBit(esr, 4)} ${getBit(esr, 3)} ${getBit(esr, 2)} ${getBit(esr, 1)} ${getBit(esr, 0)}\n\n`;
+    // Create bit field table
+    output += createBitFieldTable(esr);
     
     // Field descriptions
-    output += `EC (Exception Class): bits 26-31 = 0x${ec.toString(16).toUpperCase()} (${ec})\n`;
-    output += `ISS (Instruction Specific Syndrome): bits 0-25 = 0x${iss.toString(16).toUpperCase()}\n\n`;
+    output += `<h4>Field Analysis:</h4>`;
+    output += `<p><strong>EC (Exception Class):</strong> bits 26-31 = 0x${ec.toString(16).toUpperCase()} (${ec})</p>`;
+    output += `<p><strong>ISS (Instruction Specific Syndrome):</strong> bits 0-25 = 0x${iss.toString(16).toUpperCase()}</p>`;
     
     // Exception Class Analysis
-    output += `Exception Class: `;
+    output += `<h4>Exception Class Analysis:</h4>`;
     if (ec === 0x1E) {
-      output += `Granule Protection Check (RME)\n`;
-      output += `Description: Realm Management Extension protection violation\n\n`;
-      output += `ISS Details:\n`;
-      output += `  GPF (Granule Protection Fault): ${(iss >> 24) & 0x1 ? 'Yes' : 'No'}\n`;
-      output += `  Realm: ${(iss >> 16) & 0xFF}\n`;
-      output += `  Access Type: ${getAccessType(iss)}\n`;
+      output += `<p><strong>Type:</strong> Granule Protection Check (RME)</p>`;
+      output += `<p><strong>Description:</strong> Realm Management Extension protection violation</p>`;
+      output += `<h5>ISS Details:</h5>`;
+      output += `<ul>`;
+      output += `<li><strong>GPF (Granule Protection Fault):</strong> ${(iss >> 24) & 0x1 ? 'Yes' : 'No'}</li>`;
+      output += `<li><strong>Realm:</strong> ${(iss >> 16) & 0xFF}</li>`;
+      output += `<li><strong>Access Type:</strong> ${getAccessType(iss)}</li>`;
+      output += `</ul>`;
     } else if (ec === 0x1F) {
-      output += `SVE, FP, or BTI abort\n\n`;
-      output += `ISS Details:\n`;
-      output += `  Abort Type: ${getAbortType(iss)}\n`;
-      output += `  Syndrome: 0x${(iss & 0xFFFF).toString(16).toUpperCase()}\n`;
+      output += `<p><strong>Type:</strong> SVE, FP, or BTI abort</p>`;
+      output += `<h5>ISS Details:</h5>`;
+      output += `<ul>`;
+      output += `<li><strong>Abort Type:</strong> ${getAbortType(iss)}</li>`;
+      output += `<li><strong>Syndrome:</strong> 0x${(iss & 0xFFFF).toString(16).toUpperCase()}</li>`;
+      output += `</ul>`;
     } else if (ec === 0x20) {
-      output += `Instruction Abort from a lower Exception Level\n\n`;
-      output += `ISS Details:\n`;
-      output += `  FSC (Fault Status Code): 0x${(iss >> 0) & 0x3F}\n`;
-      output += `  EA (External Abort): ${(iss >> 9) & 0x1 ? 'Yes' : 'No'}\n`;
-      output += `  S1PTW: ${(iss >> 7) & 0x1 ? 'Yes' : 'No'}\n`;
+      output += `<p><strong>Type:</strong> Instruction Abort from a lower Exception Level</p>`;
+      output += `<h5>ISS Details:</h5>`;
+      output += `<ul>`;
+      output += `<li><strong>FSC (Fault Status Code):</strong> 0x${(iss >> 0) & 0x3F}</li>`;
+      output += `<li><strong>EA (External Abort):</strong> ${(iss >> 9) & 0x1 ? 'Yes' : 'No'}</li>`;
+      output += `<li><strong>S1PTW:</strong> ${(iss >> 7) & 0x1 ? 'Yes' : 'No'}</li>`;
+      output += `</ul>`;
     } else if (ec === 0x24) {
-      output += `Data Abort from a lower Exception Level\n\n`;
-      output += `ISS Details:\n`;
-      output += `  FSC (Fault Status Code): 0x${(iss >> 0) & 0x3F}\n`;
-      output += `  EA (External Abort): ${(iss >> 9) & 0x1 ? 'Yes' : 'No'}\n`;
-      output += `  S1PTW: ${(iss >> 7) & 0x1 ? 'Yes' : 'No'}\n`;
+      output += `<p><strong>Type:</strong> Data Abort from a lower Exception Level</p>`;
+      output += `<h5>ISS Details:</h5>`;
+      output += `<ul>`;
+      output += `<li><strong>FSC (Fault Status Code):</strong> 0x${(iss >> 0) & 0x3F}</li>`;
+      output += `<li><strong>EA (External Abort):</strong> ${(iss >> 9) & 0x1 ? 'Yes' : 'No'}</li>`;
+      output += `<li><strong>S1PTW:</strong> ${(iss >> 7) & 0x1 ? 'Yes' : 'No'}</li>`;
+      output += `</ul>`;
     } else if (ec === 0x25) {
-      output += `Data Abort from the current Exception Level\n\n`;
-      output += `ISS Details:\n`;
-      output += `  FSC (Fault Status Code): 0x${(iss >> 0) & 0x3F}\n`;
-      output += `  EA (External Abort): ${(iss >> 9) & 0x1 ? 'Yes' : 'No'}\n`;
-      output += `  S1PTW: ${(iss >> 7) & 0x1 ? 'Yes' : 'No'}\n`;
+      output += `<p><strong>Type:</strong> Data Abort from the current Exception Level</p>`;
+      output += `<h5>ISS Details:</h5>`;
+      output += `<ul>`;
+      output += `<li><strong>FSC (Fault Status Code):</strong> 0x${(iss >> 0) & 0x3F}</li>`;
+      output += `<li><strong>EA (External Abort):</strong> ${(iss >> 9) & 0x1 ? 'Yes' : 'No'}</li>`;
+      output += `<li><strong>S1PTW:</strong> ${(iss >> 7) & 0x1 ? 'Yes' : 'No'}</li>`;
+      output += `</ul>`;
     } else if (ec === 0x26) {
-      output += `Data Abort from a lower Exception Level (same EL)\n\n`;
-      output += `ISS Details:\n`;
-      output += `  FSC (Fault Status Code): 0x${(iss >> 0) & 0x3F}\n`;
-      output += `  EA (External Abort): ${(iss >> 9) & 0x1 ? 'Yes' : 'No'}\n`;
-      output += `  S1PTW: ${(iss >> 7) & 0x1 ? 'Yes' : 'No'}\n`;
+      output += `<p><strong>Type:</strong> Data Abort from a lower Exception Level (same EL)</p>`;
+      output += `<h5>ISS Details:</h5>`;
+      output += `<ul>`;
+      output += `<li><strong>FSC (Fault Status Code):</strong> 0x${(iss >> 0) & 0x3F}</li>`;
+      output += `<li><strong>EA (External Abort):</strong> ${(iss >> 9) & 0x1 ? 'Yes' : 'No'}</li>`;
+      output += `<li><strong>S1PTW:</strong> ${(iss >> 7) & 0x1 ? 'Yes' : 'No'}</li>`;
+      output += `</ul>`;
     } else {
-      output += `Unknown/Uncategorized\n`;
-      output += `ISS: 0x${iss.toString(16).toUpperCase()}\n`;
+      output += `<p><strong>Type:</strong> Unknown/Uncategorized</p>`;
+      output += `<p><strong>ISS:</strong> 0x${iss.toString(16).toUpperCase()}</p>`;
     }
     
-    resultEl.textContent = output;
+    resultEl.innerHTML = output;
     
   } catch (err) {
-    resultEl.textContent = `Error: ${err.message}`;
+    resultEl.innerHTML = `Error: ${err.message}`;
   }
 }
 
-// Helper function to get individual bits
-function getBit(value, bitPosition) {
-  return (value >> bitPosition) & 1;
+function createBitFieldTable(esr) {
+  let table = `<h4>Bit Field Breakdown:</h4>`;
+  table += `<table class="bit-table">`;
+  
+  // Header row with bit positions
+  table += `<tr>`;
+  for (let i = 31; i >= 0; i--) {
+    table += `<th>${i}</th>`;
+  }
+  table += `</tr>`;
+  
+  // Row with bit values
+  table += `<tr>`;
+  for (let i = 31; i >= 0; i--) {
+    const bit = (esr >> i) & 1;
+    table += `<td class="bit-value">${bit}</td>`;
+  }
+  table += `</tr>`;
+  
+  // Row with field names
+  table += `<tr>`;
+  table += `<td colspan="6" class="field-name">EC</td>`;
+  table += `<td colspan="26" class="field-name">ISS</td>`;
+  table += `</tr>`;
+  
+  // Row with field descriptions
+  table += `<tr>`;
+  table += `<td colspan="6" class="field-desc">Exception Class (bits 26-31)</td>`;
+  table += `<td colspan="26" class="field-desc">Instruction Specific Syndrome (bits 0-25)</td>`;
+  table += `</tr>`;
+  
+  table += `</table>`;
+  
+  return table;
 }
 
 // Helper function to get access type description

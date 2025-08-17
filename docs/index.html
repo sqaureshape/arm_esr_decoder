@@ -15,6 +15,35 @@
       white-space: pre;
       overflow-x: auto;
     }
+    .bit-table {
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+    .bit-table th, .bit-table td {
+      border: 1px solid #ccc;
+      padding: 4px 8px;
+      text-align: center;
+      min-width: 30px;
+    }
+    .bit-table th {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+    .bit-table .bit-value {
+      background-color: #e8f4f8;
+      font-weight: bold;
+    }
+    .bit-table .field-name {
+      background-color: #f8f8f8;
+      text-align: left;
+      font-weight: bold;
+    }
+    .bit-table .field-desc {
+      background-color: #f8f8f8;
+      text-align: left;
+    }
   </style>
 </head>
 <body>
@@ -23,7 +52,7 @@
   <input id="esrInput" type="text" value="0x78000045"/>
   <button onclick="decodeESR()">Decode</button>
   <h2>Result:</h2>
-  <pre id="result">Loading...</pre>
+  <div id="result">Loading...</div>
 
   <script>
     // Load the script
