@@ -1,4 +1,4 @@
-# ESR-RME Decoder Starter
+# ESR Decoder (RME supported)
 
 This is a starter repo for an Arm ESR (Exception Syndrome Register) decoder with **RME (Realm Management Extension)** support.
 
