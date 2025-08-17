@@ -117,13 +117,13 @@ function createFieldBreakdownRows(esr) {
   rows += `<td colspan="32" class="field-value">ISS: 0x${iss.toString(16).toUpperCase()} 0b${iss.toString(2).padStart(25, '0')}<br><span class="field-desc">Instruction Specific Syndrome</span></td>`;
   rows += `</tr>`;
   
-  // Add bit-aligned field breakdowns - exactly like reference
-  rows += addBitAlignedISSBreakdown(iss, ec);
+  // Add detailed ISS bit breakdown - exactly like reference
+  rows += addDetailedISSBreakdown(iss, ec);
   
   return rows;
 }
 
-function addBitAlignedISSBreakdown(iss, ec) {
+function addDetailedISSBreakdown(iss, ec) {
   let rows = '';
   
   if (ec === 0x1E) {
