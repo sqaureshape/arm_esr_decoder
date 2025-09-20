@@ -52,10 +52,10 @@ function createReferenceStyleTable(esr) {
 
 function createFieldBreakdownRows(esr) {
   let rows = '';
-    const ec = (esr >> 26) & 0x3F;
+  const ec = (esr >> 26) & 0x3F;
   const iss = esr & 0x1FFFFFF;
   
-  // Create the exact format from the reference - using colspan for field spanning
+  // Create the exact format from the reference - fields span their bit ranges as single units
   
   // EC field (bits 26-31) - 6 bits
   rows += `<tr>`;
@@ -66,6 +66,11 @@ function createFieldBreakdownRows(esr) {
   rows += `<tr>`;
   rows += `<td class="field-value" colspan="6">EC: 0x${ec.toString(16).toUpperCase()}<br><span class="field-desc">${getECDescription(ec)}</span></td>`;
   rows += `<td class="field-value" colspan="26">RES0</td>`;
+  rows += `</tr>`;
+  
+  // Empty row
+  rows += `<tr>`;
+  rows += `<td colspan="32"></td>`;
   rows += `</tr>`;
   
   // IL field (bit 25) - 1 bit
@@ -80,6 +85,11 @@ function createFieldBreakdownRows(esr) {
   rows += `<td class="field-value" colspan="31">RES0</td>`;
   rows += `</tr>`;
   
+  // Empty row
+  rows += `<tr>`;
+  rows += `<td colspan="32"></td>`;
+  rows += `</tr>`;
+  
   // ISS field (bits 0-24) - 25 bits
   rows += `<tr>`;
   rows += `<td class="field-name" colspan="25">ISS</td>`;
@@ -89,6 +99,11 @@ function createFieldBreakdownRows(esr) {
   rows += `<tr>`;
   rows += `<td class="field-value" colspan="25">ISS: 0x${iss.toString(16).toUpperCase()}<br><span class="field-desc">Instruction Specific Syndrome</span></td>`;
   rows += `<td class="field-value" colspan="7">RES0</td>`;
+  rows += `</tr>`;
+  
+  // Empty row
+  rows += `<tr>`;
+  rows += `<td colspan="32"></td>`;
   rows += `</tr>`;
   
   // Add detailed ISS bit breakdown - exactly like reference
@@ -152,7 +167,7 @@ function addDetailedISSBreakdown(iss, ec) {
     rows += `<td class="field-value" colspan="13">Reserved: 0x${((iss >> 12) & 0x1FFF).toString(16).toUpperCase()}</td>`;
     rows += `</tr>`;
     
-    } else if (ec === 0x1F) {
+  } else if (ec === 0x1F) {
     // SVE, FP, or BTI abort - ISS bits 0-24 of the ESR
     rows += `<tr>`;
     rows += `<td class="field-name" colspan="7">RES0</td>`;
