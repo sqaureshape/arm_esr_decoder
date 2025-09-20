@@ -12,12 +12,6 @@ function decodeESR() {
       return;
     }
     
-    // Extract Exception Class (EC) - bits 26-31
-    const ec = (esr >> 26) & 0x3F;
-    
-    // Extract Instruction Specific Syndrome (ISS) - bits 0-25
-    const iss = esr & 0x3FFFFFF;
-    
     let output = `<h3>ESR: 0x${esr.toString(16).toUpperCase()}</h3>`;
     output += `<p><strong>Binary:</strong> ${esr.toString(2).padStart(32, '0')}</p>`;
     
@@ -58,73 +52,43 @@ function createReferenceStyleTable(esr) {
 
 function createFieldBreakdownRows(esr) {
   let rows = '';
-  const ec = (esr >> 26) & 0x3F;
+    const ec = (esr >> 26) & 0x3F;
   const iss = esr & 0x1FFFFFF;
   
-  // Create the exact format from the reference - each field spans its exact bit positions
+  // Create the exact format from the reference - using colspan for field spanning
   
   // EC field (bits 26-31) - 6 bits
   rows += `<tr>`;
-  for (let i = 31; i >= 0; i--) {
-    if (i >= 26 && i <= 31) {
-      rows += `<td class="field-name">EC</td>`;
-    } else {
-      rows += `<td class="field-name">RES0</td>`;
-    }
-  }
+  rows += `<td class="field-name" colspan="6">EC</td>`;
+  rows += `<td class="field-name" colspan="26">RES0</td>`;
   rows += `</tr>`;
   
   rows += `<tr>`;
-  for (let i = 31; i >= 0; i--) {
-    if (i >= 26 && i <= 31) {
-      rows += `<td class="field-value">EC: 0x${ec.toString(16).toUpperCase()}<br><span class="field-desc">${getECDescription(ec)}</span></td>`;
-    } else {
-      rows += `<td class="field-value">RES0</td>`;
-    }
-  }
+  rows += `<td class="field-value" colspan="6">EC: 0x${ec.toString(16).toUpperCase()}<br><span class="field-desc">${getECDescription(ec)}</span></td>`;
+  rows += `<td class="field-value" colspan="26">RES0</td>`;
   rows += `</tr>`;
   
   // IL field (bit 25) - 1 bit
   rows += `<tr>`;
-  for (let i = 31; i >= 0; i--) {
-    if (i === 25) {
-      rows += `<td class="field-name">IL</td>`;
-    } else {
-      rows += `<td class="field-name">RES0</td>`;
-    }
-  }
+  rows += `<td class="field-name" colspan="1">IL</td>`;
+  rows += `<td class="field-name" colspan="31">RES0</td>`;
   rows += `</tr>`;
   
   const il = (esr >> 25) & 0x1;
   rows += `<tr>`;
-  for (let i = 31; i >= 0; i--) {
-    if (i === 25) {
-      rows += `<td class="field-value">IL: ${il ? 'true' : 'false'}<br><span class="field-desc">${il ? '32-bit instruction trapped' : '16-bit instruction trapped'}</span></td>`;
-    } else {
-      rows += `<td class="field-value">RES0</td>`;
-    }
-  }
+  rows += `<td class="field-value" colspan="1">IL: ${il ? 'true' : 'false'}<br><span class="field-desc">${il ? '32-bit instruction trapped' : '16-bit instruction trapped'}</span></td>`;
+  rows += `<td class="field-value" colspan="31">RES0</td>`;
   rows += `</tr>`;
   
   // ISS field (bits 0-24) - 25 bits
   rows += `<tr>`;
-  for (let i = 31; i >= 0; i--) {
-    if (i >= 0 && i <= 24) {
-      rows += `<td class="field-name">ISS</td>`;
-    } else {
-      rows += `<td class="field-name">RES0</td>`;
-    }
-  }
+  rows += `<td class="field-name" colspan="25">ISS</td>`;
+  rows += `<td class="field-name" colspan="7">RES0</td>`;
   rows += `</tr>`;
   
   rows += `<tr>`;
-  for (let i = 31; i >= 0; i--) {
-    if (i >= 0 && i <= 24) {
-      rows += `<td class="field-value">ISS: 0x${iss.toString(16).toUpperCase()}<br><span class="field-desc">Instruction Specific Syndrome</span></td>`;
-    } else {
-      rows += `<td class="field-value">RES0</td>`;
-    }
-  }
+  rows += `<td class="field-value" colspan="25">ISS: 0x${iss.toString(16).toUpperCase()}<br><span class="field-desc">Instruction Specific Syndrome</span></td>`;
+  rows += `<td class="field-value" colspan="7">RES0</td>`;
   rows += `</tr>`;
   
   // Add detailed ISS bit breakdown - exactly like reference
@@ -139,19 +103,11 @@ function addDetailedISSBreakdown(iss, ec) {
   if (ec === 0x1E) {
     // RME specific fields - ISS bits 0-24 of the ESR
     rows += `<tr>`;
-    for (let i = 31; i >= 0; i--) {
-      if (i >= 25 && i <= 31) {
-        rows += `<td class="field-name">RES0</td>`;
-      } else if (i === 24) {
-        rows += `<td class="field-name">GPF</td>`;
-      } else if (i >= 16 && i <= 23) {
-        rows += `<td class="field-name">Realm</td>`;
-      } else if (i >= 8 && i <= 15) {
-        rows += `<td class="field-name">Access</td>`;
-      } else if (i >= 0 && i <= 7) {
-        rows += `<td class="field-name">Reserved</td>`;
-      }
-    }
+    rows += `<td class="field-name" colspan="7">RES0</td>`;
+    rows += `<td class="field-name" colspan="1">GPF</td>`;
+    rows += `<td class="field-name" colspan="8">Realm</td>`;
+    rows += `<td class="field-name" colspan="8">Access</td>`;
+    rows += `<td class="field-name" colspan="8">Reserved</td>`;
     rows += `</tr>`;
     
     const gpf = (iss >> 24) & 0x1;
@@ -159,43 +115,24 @@ function addDetailedISSBreakdown(iss, ec) {
     const access = (iss >> 8) & 0x3;
     
     rows += `<tr>`;
-    for (let i = 31; i >= 0; i--) {
-      if (i >= 25 && i <= 31) {
-        rows += `<td class="field-value">RES0</td>`;
-      } else if (i === 24) {
-        rows += `<td class="field-value">GPF: ${gpf ? 'true' : 'false'}<br><span class="field-desc">Granule Protection Fault</span></td>`;
-      } else if (i >= 16 && i <= 23) {
-        rows += `<td class="field-value">Realm: 0x${realm.toString(16).toUpperCase()}</td>`;
-      } else if (i >= 8 && i <= 15) {
-        rows += `<td class="field-value">Access: ${getAccessType(iss)}</td>`;
-      } else if (i >= 0 && i <= 7) {
-        rows += `<td class="field-value">Reserved: 0x${(iss & 0xFF).toString(16).toUpperCase()}</td>`;
-      }
-    }
+    rows += `<td class="field-value" colspan="7">RES0</td>`;
+    rows += `<td class="field-value" colspan="1">GPF: ${gpf ? 'true' : 'false'}<br><span class="field-desc">Granule Protection Fault</span></td>`;
+    rows += `<td class="field-value" colspan="8">Realm: 0x${realm.toString(16).toUpperCase()}</td>`;
+    rows += `<td class="field-value" colspan="8">Access: ${getAccessType(iss)}</td>`;
+    rows += `<td class="field-value" colspan="8">Reserved: 0x${(iss & 0xFF).toString(16).toUpperCase()}</td>`;
     rows += `</tr>`;
     
   } else if (ec === 0x20 || ec === 0x24 || ec === 0x25 || ec === 0x26) {
     // Abort specific fields - ISS bits 0-24 of the ESR
     rows += `<tr>`;
-    for (let i = 31; i >= 0; i--) {
-      if (i >= 25 && i <= 31) {
-        rows += `<td class="field-name">RES0</td>`;
-      } else if (i >= 0 && i <= 5) {
-        rows += `<td class="field-name">IFSC</td>`;
-      } else if (i === 6) {
-        rows += `<td class="field-name">-</td>`;
-      } else if (i === 7) {
-        rows += `<td class="field-name">S1PTW</td>`;
-      } else if (i >= 8 && i <= 9) {
-        rows += `<td class="field-name">Access</td>`;
-      } else if (i === 10) {
-        rows += `<td class="field-name">EA</td>`;
-      } else if (i === 11) {
-        rows += `<td class="field-name">FnV</td>`;
-      } else if (i >= 12 && i <= 24) {
-        rows += `<td class="field-name">Reserved</td>`;
-      }
-    }
+    rows += `<td class="field-name" colspan="7">RES0</td>`;
+    rows += `<td class="field-name" colspan="6">IFSC</td>`;
+    rows += `<td class="field-name" colspan="1">-</td>`;
+    rows += `<td class="field-name" colspan="1">S1PTW</td>`;
+    rows += `<td class="field-name" colspan="2">Access</td>`;
+    rows += `<td class="field-name" colspan="1">EA</td>`;
+    rows += `<td class="field-name" colspan="1">FnV</td>`;
+    rows += `<td class="field-name" colspan="13">Reserved</td>`;
     rows += `</tr>`;
     
     const fsc = (iss >> 0) & 0x3F;
@@ -205,54 +142,31 @@ function addDetailedISSBreakdown(iss, ec) {
     const fnv = (iss >> 11) & 0x1;
     
     rows += `<tr>`;
-    for (let i = 31; i >= 0; i--) {
-      if (i >= 25 && i <= 31) {
-        rows += `<td class="field-value">RES0</td>`;
-      } else if (i >= 0 && i <= 5) {
-        rows += `<td class="field-value">IFSC: 0x${fsc.toString(16).toUpperCase()}<br><span class="field-desc">${getFSCDescription(fsc)}</span></td>`;
-      } else if (i === 6) {
-        rows += `<td class="field-value">-</td>`;
-      } else if (i === 7) {
-        rows += `<td class="field-value">S1PTW: ${s1ptw ? 'true' : 'false'}</td>`;
-      } else if (i >= 8 && i <= 9) {
-        rows += `<td class="field-value">Access: ${getAccessType(iss)}</td>`;
-      } else if (i === 10) {
-        rows += `<td class="field-value">EA: ${ea ? 'true' : 'false'}</td>`;
-      } else if (i === 11) {
-        rows += `<td class="field-value">FnV: ${fnv ? 'true' : 'false'}</td>`;
-      } else if (i >= 12 && i <= 24) {
-        rows += `<td class="field-value">Reserved: 0x${((iss >> 12) & 0x1FFF).toString(16).toUpperCase()}</td>`;
-      }
-    }
+    rows += `<td class="field-value" colspan="7">RES0</td>`;
+    rows += `<td class="field-value" colspan="6">IFSC: 0x${fsc.toString(16).toUpperCase()}<br><span class="field-desc">${getFSCDescription(fsc)}</span></td>`;
+    rows += `<td class="field-value" colspan="1">-</td>`;
+    rows += `<td class="field-value" colspan="1">S1PTW: ${s1ptw ? 'true' : 'false'}</td>`;
+    rows += `<td class="field-value" colspan="2">Access: ${getAccessType(iss)}</td>`;
+    rows += `<td class="field-value" colspan="1">EA: ${ea ? 'true' : 'false'}</td>`;
+    rows += `<td class="field-value" colspan="1">FnV: ${fnv ? 'true' : 'false'}</td>`;
+    rows += `<td class="field-value" colspan="13">Reserved: 0x${((iss >> 12) & 0x1FFF).toString(16).toUpperCase()}</td>`;
     rows += `</tr>`;
     
-  } else if (ec === 0x1F) {
+    } else if (ec === 0x1F) {
     // SVE, FP, or BTI abort - ISS bits 0-24 of the ESR
     rows += `<tr>`;
-    for (let i = 31; i >= 0; i--) {
-      if (i >= 25 && i <= 31) {
-        rows += `<td class="field-name">RES0</td>`;
-      } else if (i >= 16 && i <= 24) {
-        rows += `<td class="field-name">Abort Type</td>`;
-      } else if (i >= 0 && i <= 15) {
-        rows += `<td class="field-name">Syndrome</td>`;
-      }
-    }
+    rows += `<td class="field-name" colspan="7">RES0</td>`;
+    rows += `<td class="field-name" colspan="9">Abort Type</td>`;
+    rows += `<td class="field-name" colspan="16">Syndrome</td>`;
     rows += `</tr>`;
     
     const abortType = (iss >> 16) & 0xFF;
     const syndrome = iss & 0xFFFF;
     
     rows += `<tr>`;
-    for (let i = 31; i >= 0; i--) {
-      if (i >= 25 && i <= 31) {
-        rows += `<td class="field-value">RES0</td>`;
-      } else if (i >= 16 && i <= 24) {
-        rows += `<td class="field-value">Abort Type: 0x${abortType.toString(16).toUpperCase()}<br><span class="field-desc">${getAbortTypeDescription(abortType)}</span></td>`;
-      } else if (i >= 0 && i <= 15) {
-        rows += `<td class="field-value">Syndrome: 0x${syndrome.toString(16).toUpperCase()}</td>`;
-      }
-    }
+    rows += `<td class="field-value" colspan="7">RES0</td>`;
+    rows += `<td class="field-value" colspan="9">Abort Type: 0x${abortType.toString(16).toUpperCase()}<br><span class="field-desc">${getAbortTypeDescription(abortType)}</span></td>`;
+    rows += `<td class="field-value" colspan="16">Syndrome: 0x${syndrome.toString(16).toUpperCase()}</td>`;
     rows += `</tr>`;
   }
   
