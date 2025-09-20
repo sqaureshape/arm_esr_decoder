@@ -55,53 +55,26 @@ function createFieldBreakdownRows(esr) {
   const ec = (esr >> 26) & 0x3F;
   const iss = esr & 0x1FFFFFF;
   
-  // Create the exact format from the reference - fields span their bit ranges as single units
+  // Create the exact format from the reference - all fields in same row
   
-  // EC field (bits 26-31) - 6 bits
+  // Row 1: Field names (EC, IL, ISS all in same row)
   rows += `<tr>`;
   rows += `<td class="field-name" colspan="6">EC</td>`;
-  rows += `<td class="field-name" colspan="26">RES0</td>`;
+  rows += `<td class="field-name" colspan="1">IL</td>`;
+  rows += `<td class="field-name" colspan="25">ISS</td>`;
   rows += `</tr>`;
   
+  // Row 2: Field values and descriptions (EC, IL, ISS all in same row)
   rows += `<tr>`;
   rows += `<td class="field-value" colspan="6">EC: 0x${ec.toString(16).toUpperCase()}<br><span class="field-desc">${getECDescription(ec)}</span></td>`;
-  rows += `<td class="field-value" colspan="26">RES0</td>`;
-  rows += `</tr>`;
-  
-  // Empty row
-  rows += `<tr>`;
-  rows += `<td colspan="32"></td>`;
-  rows += `</tr>`;
-  
-  // IL field (bit 25) - 1 bit
-  rows += `<tr>`;
-  rows += `<td class="field-name" colspan="1">IL</td>`;
-  rows += `<td class="field-name" colspan="31">RES0</td>`;
-  rows += `</tr>`;
   
   const il = (esr >> 25) & 0x1;
-  rows += `<tr>`;
   rows += `<td class="field-value" colspan="1">IL: ${il ? 'true' : 'false'}<br><span class="field-desc">${il ? '32-bit instruction trapped' : '16-bit instruction trapped'}</span></td>`;
-  rows += `<td class="field-value" colspan="31">RES0</td>`;
+  
+  rows += `<td class="field-value" colspan="25">ISS: 0x${iss.toString(16).toUpperCase()}<br><span class="field-desc">0b${iss.toString(2).padStart(25, '0')}</span></td>`;
   rows += `</tr>`;
   
-  // Empty row
-  rows += `<tr>`;
-  rows += `<td colspan="32"></td>`;
-  rows += `</tr>`;
-  
-  // ISS field (bits 0-24) - 25 bits
-  rows += `<tr>`;
-  rows += `<td class="field-name" colspan="25">ISS</td>`;
-  rows += `<td class="field-name" colspan="7">RES0</td>`;
-  rows += `</tr>`;
-  
-  rows += `<tr>`;
-  rows += `<td class="field-value" colspan="25">ISS: 0x${iss.toString(16).toUpperCase()}<br><span class="field-desc">Instruction Specific Syndrome</span></td>`;
-  rows += `<td class="field-value" colspan="7">RES0</td>`;
-  rows += `</tr>`;
-  
-  // Empty row
+  // Empty row separator
   rows += `<tr>`;
   rows += `<td colspan="32"></td>`;
   rows += `</tr>`;
@@ -130,7 +103,7 @@ function addDetailedISSBreakdown(iss, ec) {
     const access = (iss >> 8) & 0x3;
     
     rows += `<tr>`;
-    rows += `<td class="field-value" colspan="7">RES0</td>`;
+    rows += `<td class="field-value" colspan="7">RES0: 0x${((iss >> 25) & 0x7F).toString(16).toUpperCase()}</td>`;
     rows += `<td class="field-value" colspan="1">GPF: ${gpf ? 'true' : 'false'}<br><span class="field-desc">Granule Protection Fault</span></td>`;
     rows += `<td class="field-value" colspan="8">Realm: 0x${realm.toString(16).toUpperCase()}</td>`;
     rows += `<td class="field-value" colspan="8">Access: ${getAccessType(iss)}</td>`;
@@ -144,10 +117,10 @@ function addDetailedISSBreakdown(iss, ec) {
     rows += `<td class="field-name" colspan="6">IFSC</td>`;
     rows += `<td class="field-name" colspan="1">-</td>`;
     rows += `<td class="field-name" colspan="1">S1PTW</td>`;
-    rows += `<td class="field-name" colspan="2">Access</td>`;
+    rows += `<td class="field-name" colspan="2">RES0</td>`;
     rows += `<td class="field-name" colspan="1">EA</td>`;
     rows += `<td class="field-name" colspan="1">FnV</td>`;
-    rows += `<td class="field-name" colspan="13">Reserved</td>`;
+    rows += `<td class="field-name" colspan="13">RES0</td>`;
     rows += `</tr>`;
     
     const fsc = (iss >> 0) & 0x3F;
@@ -157,14 +130,14 @@ function addDetailedISSBreakdown(iss, ec) {
     const fnv = (iss >> 11) & 0x1;
     
     rows += `<tr>`;
-    rows += `<td class="field-value" colspan="7">RES0</td>`;
+    rows += `<td class="field-value" colspan="7">RES0: 0x${((iss >> 12) & 0x1FFF).toString(16).toUpperCase()}</td>`;
     rows += `<td class="field-value" colspan="6">IFSC: 0x${fsc.toString(16).toUpperCase()}<br><span class="field-desc">${getFSCDescription(fsc)}</span></td>`;
     rows += `<td class="field-value" colspan="1">-</td>`;
     rows += `<td class="field-value" colspan="1">S1PTW: ${s1ptw ? 'true' : 'false'}</td>`;
-    rows += `<td class="field-value" colspan="2">Access: ${getAccessType(iss)}</td>`;
+    rows += `<td class="field-value" colspan="2">RES0: 0x${((iss >> 8) & 0x3).toString(16).toUpperCase()}</td>`;
     rows += `<td class="field-value" colspan="1">EA: ${ea ? 'true' : 'false'}</td>`;
-    rows += `<td class="field-value" colspan="1">FnV: ${fnv ? 'true' : 'false'}</td>`;
-    rows += `<td class="field-value" colspan="13">Reserved: 0x${((iss >> 12) & 0x1FFF).toString(16).toUpperCase()}</td>`;
+    rows += `<td class="field-value" colspan="1">FnV: ${fnv ? 'true' : 'false'}<br><span class="field-desc">FAR is valid</span></td>`;
+    rows += `<td class="field-value" colspan="13">RES0: 0x${((iss >> 12) & 0x1FFF).toString(16).toUpperCase()}</td>`;
     rows += `</tr>`;
     
   } else if (ec === 0x1F) {
@@ -179,7 +152,7 @@ function addDetailedISSBreakdown(iss, ec) {
     const syndrome = iss & 0xFFFF;
     
     rows += `<tr>`;
-    rows += `<td class="field-value" colspan="7">RES0</td>`;
+    rows += `<td class="field-value" colspan="7">RES0: 0x${((iss >> 25) & 0x7F).toString(16).toUpperCase()}</td>`;
     rows += `<td class="field-value" colspan="9">Abort Type: 0x${abortType.toString(16).toUpperCase()}<br><span class="field-desc">${getAbortTypeDescription(abortType)}</span></td>`;
     rows += `<td class="field-value" colspan="16">Syndrome: 0x${syndrome.toString(16).toUpperCase()}</td>`;
     rows += `</tr>`;
