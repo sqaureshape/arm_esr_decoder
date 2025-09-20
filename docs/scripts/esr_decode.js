@@ -59,62 +59,72 @@ function createReferenceStyleTable(esr) {
 function createFieldBreakdownRows(esr) {
   let rows = '';
   const ec = (esr >> 26) & 0x3F;
+  const iss = esr & 0x1FFFFFF;
   
-  // RES0 fields (reserved bits) - exactly like reference
+  // Create the exact format from the reference - each field spans its actual bit positions
+  
+  // EC field (bits 26-31) - 6 bits
   rows += `<tr>`;
-  rows += `<td colspan="6" class="field-name">RES0</td>`;
-  rows += `<td colspan="1" class="field-name">RES0</td>`;
-  rows += `<td colspan="25" class="field-name">RES0</td>`;
+  for (let i = 31; i >= 0; i--) {
+    if (i >= 26 && i <= 31) {
+      rows += `<td class="field-name">EC</td>`;
+    } else {
+      rows += `<td class="field-name">RES0</td>`;
+    }
+  }
   rows += `</tr>`;
   
   rows += `<tr>`;
-  rows += `<td colspan="6" class="field-value">RES0: 0x${((esr >> 26) & 0x3F).toString(16).toUpperCase()}</td>`;
-  rows += `<td colspan="1" class="field-value">RES0: 0x${((esr >> 25) & 0x1).toString(16).toUpperCase()}</td>`;
-  rows += `<td colspan="25" class="field-value">RES0: 0x${(esr & 0x1FFFFFF).toString(16).toUpperCase()}</td>`;
+  for (let i = 31; i >= 0; i--) {
+    if (i >= 26 && i <= 31) {
+      rows += `<td class="field-value">EC: 0x${ec.toString(16).toUpperCase()}<br><span class="field-desc">${getECDescription(ec)}</span></td>`;
+    } else {
+      rows += `<td class="field-value">RES0</td>`;
+    }
+  }
   rows += `</tr>`;
   
-  // ISS2 field (bits 20-24) - exactly like reference
+  // IL field (bit 25) - 1 bit
   rows += `<tr>`;
-  rows += `<td colspan="12" class="field-name">ISS2</td>`;
-  rows += `<td colspan="20" class="field-name">ISS2</td>`;
-  rows += `</tr>`;
-  
-  rows += `<tr>`;
-  rows += `<td colspan="12" class="field-value">ISS2: 0x${((esr >> 20) & 0x1F).toString(16).toUpperCase()} 0b${((esr >> 20) & 0x1F).toString(2).padStart(5, '0')}</td>`;
-  rows += `<td colspan="20" class="field-value">ISS2: 0x${((esr >> 20) & 0x1F).toString(16).toUpperCase()} 0b${((esr >> 20) & 0x1F).toString(2).padStart(5, '0')}</td>`;
-  rows += `</tr>`;
-  
-  // EC field (bits 26-31)
-  rows += `<tr>`;
-  rows += `<td colspan="6" class="field-name">EC</td>`;
-  rows += `<td colspan="26" class="field-name">EC</td>`;
-  rows += `</tr>`;
-  
-  rows += `<tr>`;
-  rows += `<td colspan="6" class="field-value">EC: 0x${ec.toString(16).toUpperCase()} 0b${ec.toString(2).padStart(6, '0')}<br><span class="field-desc">${getECDescription(ec)}</span></td>`;
-  rows += `<td colspan="26" class="field-value">EC: 0x${ec.toString(16).toUpperCase()} 0b${ec.toString(2).padStart(6, '0')}<br><span class="field-desc">${getECDescription(ec)}</span></td>`;
-  rows += `</tr>`;
-  
-  // IL field (bit 25)
-  rows += `<tr>`;
-  rows += `<td colspan="7" class="field-name">IL</td>`;
-  rows += `<td colspan="25" class="field-name">IL</td>`;
+  for (let i = 31; i >= 0; i--) {
+    if (i === 25) {
+      rows += `<td class="field-name">IL</td>`;
+    } else {
+      rows += `<td class="field-name">RES0</td>`;
+    }
+  }
   rows += `</tr>`;
   
   const il = (esr >> 25) & 0x1;
   rows += `<tr>`;
-  rows += `<td colspan="7" class="field-value">IL: ${il ? 'true' : 'false'}<br><span class="field-desc">${il ? '32-bit instruction trapped' : '16-bit instruction trapped'}</span></td>`;
-  rows += `<td colspan="25" class="field-value">IL: ${il ? 'true' : 'false'}<br><span class="field-desc">${il ? '32-bit instruction trapped' : '16-bit instruction trapped'}</span></td>`;
+  for (let i = 31; i >= 0; i--) {
+    if (i === 25) {
+      rows += `<td class="field-value">IL: ${il ? 'true' : 'false'}<br><span class="field-desc">${il ? '32-bit instruction trapped' : '16-bit instruction trapped'}</span></td>`;
+    } else {
+      rows += `<td class="field-value">RES0</td>`;
+    }
+  }
   rows += `</tr>`;
   
-  // ISS field (bits 0-24)
+  // ISS field (bits 0-24) - 25 bits
   rows += `<tr>`;
-  rows += `<td colspan="32" class="field-name">ISS</td>`;
+  for (let i = 31; i >= 0; i--) {
+    if (i >= 0 && i <= 24) {
+      rows += `<td class="field-name">ISS</td>`;
+    } else {
+      rows += `<td class="field-name">RES0</td>`;
+    }
+  }
   rows += `</tr>`;
   
-  const iss = esr & 0x1FFFFFF;
   rows += `<tr>`;
-  rows += `<td colspan="32" class="field-value">ISS: 0x${iss.toString(16).toUpperCase()} 0b${iss.toString(2).padStart(25, '0')}<br><span class="field-desc">Instruction Specific Syndrome</span></td>`;
+  for (let i = 31; i >= 0; i--) {
+    if (i >= 0 && i <= 24) {
+      rows += `<td class="field-value">ISS: 0x${iss.toString(16).toUpperCase()}<br><span class="field-desc">Instruction Specific Syndrome</span></td>`;
+    } else {
+      rows += `<td class="field-value">RES0</td>`;
+    }
+  }
   rows += `</tr>`;
   
   // Add detailed ISS bit breakdown - exactly like reference
@@ -127,12 +137,21 @@ function addDetailedISSBreakdown(iss, ec) {
   let rows = '';
   
   if (ec === 0x1E) {
-    // RME specific fields with bit alignment
+    // RME specific fields with proper bit alignment
     rows += `<tr>`;
-    rows += `<td colspan="8" class="field-name">GPF</td>`;
-    rows += `<td colspan="8" class="field-name">Realm</td>`;
-    rows += `<td colspan="8" class="field-name">Access</td>`;
-    rows += `<td colspan="8" class="field-name">Reserved</td>`;
+    for (let i = 31; i >= 0; i--) {
+      if (i === 24) {
+        rows += `<td class="field-name">GPF</td>`;
+      } else if (i >= 16 && i <= 23) {
+        rows += `<td class="field-name">Realm</td>`;
+      } else if (i >= 8 && i <= 9) {
+        rows += `<td class="field-name">Access</td>`;
+      } else if (i >= 0 && i <= 7) {
+        rows += `<td class="field-name">Reserved</td>`;
+      } else {
+        rows += `<td class="field-name">RES0</td>`;
+      }
+    }
     rows += `</tr>`;
     
     const gpf = (iss >> 24) & 0x1;
@@ -140,55 +159,104 @@ function addDetailedISSBreakdown(iss, ec) {
     const access = (iss >> 8) & 0x3;
     
     rows += `<tr>`;
-    rows += `<td colspan="8" class="field-value">GPF: ${gpf ? 'true' : 'false'}<br><span class="field-desc">Granule Protection Fault</span></td>`;
-    rows += `<td colspan="8" class="field-value">Realm: 0x${realm.toString(16).toUpperCase()}</td>`;
-    rows += `<td colspan="8" class="field-value">Access: ${getAccessType(iss)}</td>`;
-    rows += `<td colspan="8" class="field-value">Reserved: 0x${(iss & 0xFF).toString(16).toUpperCase()}</td>`;
+    for (let i = 31; i >= 0; i--) {
+      if (i === 24) {
+        rows += `<td class="field-value">GPF: ${gpf ? 'true' : 'false'}<br><span class="field-desc">Granule Protection Fault</span></td>`;
+      } else if (i >= 16 && i <= 23) {
+        rows += `<td class="field-value">Realm: 0x${realm.toString(16).toUpperCase()}</td>`;
+      } else if (i >= 8 && i <= 9) {
+        rows += `<td class="field-value">Access: ${getAccessType(iss)}</td>`;
+      } else if (i >= 0 && i <= 7) {
+        rows += `<td class="field-value">Reserved: 0x${(iss & 0xFF).toString(16).toUpperCase()}</td>`;
+      } else {
+        rows += `<td class="field-value">RES0</td>`;
+      }
+    }
     rows += `</tr>`;
     
   } else if (ec === 0x20 || ec === 0x24 || ec === 0x25 || ec === 0x26) {
-    // Abort specific fields with bit alignment - exactly like reference
+    // Abort specific fields with proper bit alignment - exactly like reference
     rows += `<tr>`;
-    rows += `<td colspan="6" class="field-name">IFSC</td>`;
-    rows += `<td colspan="1" class="field-name">-</td>`;
-    rows += `<td colspan="1" class="field-name">S1PTW</td>`;
-    rows += `<td colspan="2" class="field-name">Access</td>`;
-    rows += `<td colspan="1" class="field-name">EA</td>`;
-    rows += `<td colspan="1" class="field-name">FnV</td>`;
-    rows += `<td colspan="15" class="field-name">Reserved</td>`;
+    for (let i = 31; i >= 0; i--) {
+      if (i >= 0 && i <= 5) {
+        rows += `<td class="field-name">IFSC</td>`;
+      } else if (i === 6) {
+        rows += `<td class="field-name">-</td>`;
+      } else if (i === 7) {
+        rows += `<td class="field-name">S1PTW</td>`;
+      } else if (i >= 8 && i <= 9) {
+        rows += `<td class="field-name">Access</td>`;
+      } else if (i === 10) {
+        rows += `<td class="field-name">EA</td>`;
+      } else if (i === 11) {
+        rows += `<td class="field-name">FnV</td>`;
+      } else if (i >= 12 && i <= 24) {
+        rows += `<td class="field-name">Reserved</td>`;
+      } else {
+        rows += `<td class="field-name">RES0</td>`;
+      }
+    }
     rows += `</tr>`;
     
     const fsc = (iss >> 0) & 0x3F;
     const s1ptw = (iss >> 7) & 0x1;
     const access = (iss >> 8) & 0x3;
-    const ea = (iss >> 9) & 0x1;
-    const fnv = (iss >> 10) & 0x1;
+    const ea = (iss >> 10) & 0x1;
+    const fnv = (iss >> 11) & 0x1;
     
     rows += `<tr>`;
-    rows += `<td colspan="6" class="field-value">IFSC: 0x${fsc.toString(16).toUpperCase()} 0b${fsc.toString(2).padStart(6, '0')}<br><span class="field-desc">${getFSCDescription(fsc)}</span></td>`;
-    rows += `<td colspan="1" class="field-value">-</td>`;
-    rows += `<td colspan="1" class="field-value">S1PTW: ${s1ptw ? 'true' : 'false'}</td>`;
-    rows += `<td colspan="2" class="field-value">Access: ${getAccessType(iss)}</td>`;
-    rows += `<td colspan="1" class="field-value">EA: ${ea ? 'true' : 'false'}</td>`;
-    rows += `<td colspan="1" class="field-value">FnV: ${fnv ? 'true' : 'false'}</td>`;
-    rows += `<td colspan="15" class="field-value">Reserved: 0x${((iss >> 11) & 0x3FFF).toString(16).toUpperCase()}</td>`;
+    for (let i = 31; i >= 0; i--) {
+      if (i >= 0 && i <= 5) {
+        rows += `<td class="field-value">IFSC: 0x${fsc.toString(16).toUpperCase()}<br><span class="field-desc">${getFSCDescription(fsc)}</span></td>`;
+      } else if (i === 6) {
+        rows += `<td class="field-value">-</td>`;
+      } else if (i === 7) {
+        rows += `<td class="field-value">S1PTW: ${s1ptw ? 'true' : 'false'}</td>`;
+      } else if (i >= 8 && i <= 9) {
+        rows += `<td class="field-value">Access: ${getAccessType(iss)}</td>`;
+      } else if (i === 10) {
+        rows += `<td class="field-value">EA: ${ea ? 'true' : 'false'}</td>`;
+      } else if (i === 11) {
+        rows += `<td class="field-value">FnV: ${fnv ? 'true' : 'false'}</td>`;
+      } else if (i >= 12 && i <= 24) {
+        rows += `<td class="field-value">Reserved: 0x${((iss >> 12) & 0x1FFF).toString(16).toUpperCase()}</td>`;
+      } else {
+        rows += `<td class="field-value">RES0</td>`;
+      }
+    }
     rows += `</tr>`;
     
   } else if (ec === 0x1F) {
-    // SVE, FP, or BTI abort with bit alignment
+    // SVE, FP, or BTI abort with proper bit alignment
     rows += `<tr>`;
-    rows += `<td colspan="8" class="field-name">Abort Type</td>`;
-    rows += `<td colspan="16" class="field-name">Syndrome</td>`;
-    rows += `<td colspan="8" class="field-name">Reserved</td>`;
+    for (let i = 31; i >= 0; i--) {
+      if (i >= 16 && i <= 23) {
+        rows += `<td class="field-name">Abort Type</td>`;
+      } else if (i >= 0 && i <= 15) {
+        rows += `<td class="field-name">Syndrome</td>`;
+      } else if (i >= 24 && i <= 24) {
+        rows += `<td class="field-name">Reserved</td>`;
+      } else {
+        rows += `<td class="field-name">RES0</td>`;
+      }
+    }
     rows += `</tr>`;
     
     const abortType = (iss >> 16) & 0xFF;
     const syndrome = iss & 0xFFFF;
     
     rows += `<tr>`;
-    rows += `<td colspan="8" class="field-value">Abort Type: 0x${abortType.toString(16).toUpperCase()}<br><span class="field-desc">${getAbortTypeDescription(abortType)}</span></td>`;
-    rows += `<td colspan="16" class="field-value">Syndrome: 0x${syndrome.toString(16).toUpperCase()}</td>`;
-    rows += `<td colspan="8" class="field-value">Reserved: 0x00</td>`;
+    for (let i = 31; i >= 0; i--) {
+      if (i >= 16 && i <= 23) {
+        rows += `<td class="field-value">Abort Type: 0x${abortType.toString(16).toUpperCase()}<br><span class="field-desc">${getAbortTypeDescription(abortType)}</span></td>`;
+      } else if (i >= 0 && i <= 15) {
+        rows += `<td class="field-value">Syndrome: 0x${syndrome.toString(16).toUpperCase()}</td>`;
+      } else if (i >= 24 && i <= 24) {
+        rows += `<td class="field-value">Reserved: 0x00</td>`;
+      } else {
+        rows += `<td class="field-value">RES0</td>`;
+      }
+    }
     rows += `</tr>`;
   }
   
