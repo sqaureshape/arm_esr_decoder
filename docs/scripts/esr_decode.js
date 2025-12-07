@@ -54,8 +54,8 @@ function createFieldBreakdownRows(esr) {
   let rows = '';
   const ec = (esr >> 26) & 0x3F;
   const iss = esr & 0x1FFFFFF;
-  
-  // Create the exact format from the reference - all fields in same row
+  const res0 = (esr >> 7) & 0x1FFFFFF;
+  const iss2 = (esr >> 2) & 0x1F;
   
   // Row 1: Field names (EC, IL, ISS all in same row)
   rows += `<tr>`;
@@ -64,14 +64,19 @@ function createFieldBreakdownRows(esr) {
   rows += `<td class="field-name" colspan="25">ISS</td>`;
   rows += `</tr>`;
   
-  // Row 2: Field values and descriptions (EC, IL, ISS all in same row)
-  rows += `<tr>`;
-  rows += `<td class="field-value" colspan="6">EC: 0x${ec.toString(16).toUpperCase()}<br><span class="field-desc">${getECDescription(ec)}</span></td>`;
-  
+  // Row 2: Single row with all field values in one line (like reference)
   const il = (esr >> 25) & 0x1;
-  rows += `<td class="field-value" colspan="1">IL: ${il ? 'true' : 'false'}<br><span class="field-desc">${il ? '32-bit instruction trapped' : '16-bit instruction trapped'}</span></td>`;
+  // RES0 is bits 31-7 (25 bits of reserved space above ISS)
+  const res0Value = (esr >> 7) & 0x1FFFFFF;
+  const res0Bits = res0Value.toString(2).padStart(25, '0');
+  // ISS2 is bits 6-2 (5 bits, part of ISS)
+  const iss2Value = (iss >> 2) & 0x1F;
+  const iss2Bits = iss2Value.toString(2).padStart(5, '0');
+  const ecBits = ec.toString(2).padStart(6, '0');
+  const issBits = iss.toString(2).padStart(25, '0');
   
-  rows += `<td class="field-value" colspan="25">ISS: 0x${iss.toString(16).toUpperCase()}<br><span class="field-desc">0b${iss.toString(2).padStart(25, '0')}</span></td>`;
+  rows += `<tr>`;
+  rows += `<td class="field-value" colspan="32" style="text-align: left; white-space: nowrap; font-family: monospace; padding: 8px;">RES0: 0x${res0Value.toString(16).toUpperCase().padStart(7, '0')} 0b${res0Bits}	ISS2: 0x${iss2Value.toString(16).toUpperCase().padStart(2, '0')} 0b${iss2Bits}	EC: 0x${ec.toString(16).toUpperCase().padStart(2, '0')} 0b${ecBits}	IL: ${il ? 'true' : 'false'}	ISS: 0x${iss.toString(16).toUpperCase().padStart(7, '0')} 0b${issBits}</td>`;
   rows += `</tr>`;
   
   // Empty row separator
