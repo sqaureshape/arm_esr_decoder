@@ -1,0 +1,411 @@
+/* ARM Register Decoder - Shared Styles */
+/* Matching esr.arm64.dev design */
+
+:root {
+  --primary-bg: #ffffff;
+  --secondary-bg: #f8f9fa;
+  --text-primary: #2c3e50;
+  --text-secondary: #495057;
+  --text-muted: #6c757d;
+  --border-color: #dee2e6;
+  --link-color: #007bff;
+  --link-hover: #0056b3;
+  
+  /* Bit table colors */
+  --bit-header-bg: #f8f9fa;
+  --bit-value-bg: #e3f2fd;
+  --bit-value-text: #1976d2;
+  --field-name-bg: #f3e5f5;
+  --field-name-text: #7b1fa2;
+  --field-value-bg: #e8f5e8;
+  --field-value-text: #2e7d32;
+  --field-desc-text: #666;
+  --bit-meaning-bg: #fff3e0;
+  --bit-meaning-text: #f57c00;
+  --field-info-bg: #fce4ec;
+  --field-info-text: #c2185b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: var(--primary-bg);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+/* Header and Navigation */
+header {
+  background: var(--secondary-bg);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 2rem;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+nav a {
+  color: var(--link-color);
+  text-decoration: none;
+  font-size: 0.95rem;
+  padding: 0.25rem 0;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+nav a:hover {
+  color: var(--link-hover);
+  border-bottom-color: var(--link-hover);
+}
+
+nav a.active {
+  color: var(--text-primary);
+  font-weight: 600;
+  border-bottom-color: var(--text-primary);
+}
+
+/* Main Content */
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Input Section */
+.input-section {
+  margin-bottom: 2rem;
+}
+
+.input-section p {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.input-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+input[type="text"] {
+  flex: 1;
+  max-width: 400px;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  font-family: 'Courier New', monospace;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--primary-bg);
+  transition: border-color 0.2s ease;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: var(--link-color);
+}
+
+button {
+  padding: 0.5rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--primary-bg);
+  background: var(--link-color);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+button:hover {
+  background: var(--link-hover);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+/* Results Section */
+.result-section {
+  margin-top: 2rem;
+}
+
+.result-section h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 1rem 0;
+}
+
+.result-section h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 1.5rem 0 0.75rem 0;
+}
+
+.result-section h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 1rem 0 0.5rem 0;
+}
+
+.result-section h5 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0.75rem 0 0.5rem 0;
+}
+
+.result-section p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.result-section strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.result-section ul {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.result-section li {
+  margin: 0.25rem 0;
+  font-size: 0.95rem;
+}
+
+/* Code and Pre blocks */
+pre {
+  background: var(--secondary-bg);
+  padding: 1rem;
+  border-radius: 5px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  white-space: pre;
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+}
+
+code {
+  font-family: 'Courier New', monospace;
+  background: var(--secondary-bg);
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+/* Bit Visualization Table */
+.bit-table {
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  width: 100%;
+  max-width: 1200px;
+  overflow-x: auto;
+  display: block;
+}
+
+.bit-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.bit-table th,
+.bit-table td {
+  border: 1px solid var(--border-color);
+  padding: 6px 4px;
+  text-align: center;
+  min-width: 25px;
+  height: 20px;
+  vertical-align: top;
+}
+
+.bit-table th {
+  background-color: var(--bit-header-bg);
+  font-weight: bold;
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+.bit-table .bit-value {
+  background-color: var(--bit-value-bg);
+  font-weight: bold;
+  color: var(--bit-value-text);
+}
+
+.bit-table .field-name {
+  background-color: var(--field-name-bg);
+  text-align: center;
+  font-weight: bold;
+  color: var(--field-name-text);
+}
+
+.bit-table .field-value {
+  background-color: var(--field-value-bg);
+  text-align: left;
+  font-size: 10px;
+  color: var(--field-value-text);
+  padding: 8px;
+  line-height: 1.3;
+}
+
+.bit-table .field-desc {
+  color: var(--field-desc-text);
+  font-style: italic;
+  font-size: 9px;
+  display: block;
+  margin-top: 4px;
+}
+
+.bit-table .bit-meaning {
+  background-color: var(--bit-meaning-bg);
+  text-align: center;
+  font-size: 9px;
+  color: var(--bit-meaning-text);
+  font-weight: bold;
+  padding: 4px 2px;
+}
+
+.bit-table .field-info {
+  background-color: var(--field-info-bg);
+  text-align: center;
+  font-size: 10px;
+  color: var(--field-info-text);
+  font-weight: bold;
+}
+
+.bit-table td[colspan] {
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Processor Info Display (for MIDR) */
+.processor-info {
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.processor-info h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+}
+
+.processor-info p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+/* Warning/Error Messages */
+.warning {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-left: 4px solid #ffc107;
+  color: #856404;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+}
+
+.error {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-left: 4px solid #dc3545;
+  color: #721c24;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+}
+
+.info {
+  background: #d1ecf1;
+  border: 1px solid #bee5eb;
+  border-left: 4px solid #17a2b8;
+  color: #0c5460;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+}
+
+/* Footer */
+footer {
+  max-width: 1200px;
+  margin: 3rem auto 2rem;
+  padding: 0 2rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+}
+
+footer a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  header {
+    padding: 1rem;
+  }
+  
+  main {
+    padding: 1rem;
+  }
+  
+  .bit-table {
+    font-size: 9px;
+  }
+  
+  .bit-table th,
+  .bit-table td {
+    min-width: 20px;
+    padding: 4px 2px;
+  }
+  
+  input[type="text"] {
+    max-width: 100%;
+  }
+  
+  .input-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  button {
+    width: 100%;
+  }
+}

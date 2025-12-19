@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AArch64 MIDR decoder</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <div class="header-content">
+            <h1>AArch64 register decoder</h1>
+            <nav>
+                <a href="index.html">ESR</a>
+                <a href="midr.html" class="active">MIDR</a>
+                <a href="smccc.html">SMCCC</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="input-section">
+            <p>Decimal or hexadecimal input supported. Use 0x for hexadecimal.</p>
+            <div class="input-group">
+                <label for="midrInput">MIDR:</label>
+                <input id="midrInput" type="text" value="0x410FD083" placeholder="0x410FD083" />
+                <button onclick="decodeMIDR()">Decode</button>
+            </div>
+        </div>
+
+        <div class="result-section">
+            <h2>Result:</h2>
+            <div id="result">Loading...</div>
+        </div>
+    </main>
+
+    <footer>
+        <p><a href="https://github.com/google/aarch64-esr-decoder" target="_blank">Source and command-line version</a>
+        </p>
+    </footer>
+
+    <script src="scripts/midr_decode.js"></script>
+    <script>
+        // Auto-decode on page load
+        window.onload = function () {
+            // Check for URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const midrParam = urlParams.get('midr');
+            if (midrParam) {
+                document.getElementById('midrInput').value = midrParam;
+            }
+            // Check hash parameter
+            if (window.location.hash) {
+                const hashValue = window.location.hash.substring(1);
+                if (hashValue) {
+                    document.getElementById('midrInput').value = '0x' + hashValue;
+                }
+            }
+            decodeMIDR();
+        };
+    </script>
+</body>
+
+</html>
